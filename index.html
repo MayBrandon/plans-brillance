@@ -136,6 +136,53 @@ input[type=text]:focus{outline:2px solid var(--cyan);outline-offset:1px}
 button.danger{background:var(--red);color:#06110f;font-weight:700;border-color:transparent}
 button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #toast{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--cyan);color:var(--foam);padding:10px 16px;border-radius:20px;z-index:50;display:none;max-width:90vw;text-align:center}
+
+/* --- étapes, conseils, référence avant, stockage, avant/après --- */
+.hub{grid-template-columns:repeat(3,1fr);gap:10px;padding:20px 16px 6px}
+.sq{border-radius:20px;padding:8px 4px;gap:2px}
+.sq strong{font-size:1.02rem;letter-spacing:.05em}
+.sq small{font-size:.72rem}
+.sq .em svg.i{width:46px;height:46px}
+.sq .em svg.i48{stroke-width:1.9}
+.sq .ck{top:7px;right:8px}
+.sq .ck svg.i{width:17px;height:17px}
+.sq.c,:root[data-theme="light"] .sq.c{border-color:color-mix(in srgb,var(--foam) 40%,var(--line));background:linear-gradient(150deg,color-mix(in srgb,var(--foam) 20%,transparent),color-mix(in srgb,var(--foam) 4%,transparent))}
+.sq.c .em{color:var(--foam)}
+.sq.lock,:root[data-theme="light"] .sq.lock{background:linear-gradient(150deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border-color:var(--line)}
+.sq.lock .em{color:var(--muted)}
+.ht{line-height:1.25;min-width:0}
+.ht b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ht small{color:var(--cyan);font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase}
+.tip{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--muted);font-size:.9rem;line-height:1.4;margin:0 0 14px}
+.tip svg.i{color:var(--cyan);margin-top:.12em}
+.rl{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--cyan)}
+.ref{border:1px solid color-mix(in srgb,var(--cyan) 45%,var(--line));background:color-mix(in srgb,var(--cyan) 7%,transparent);border-radius:14px;padding:10px;margin:0 0 14px}
+.ref .tg{margin-top:8px}
+.ref.none{border-style:dashed;border-color:var(--line);background:none;color:var(--muted);font-size:.85rem;text-align:center}
+.stor{margin:14px 16px 4px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);font-size:.88rem}
+.stor small{display:block;color:var(--muted);margin-top:8px;line-height:1.4}
+.stor.warn{border-color:var(--amber)}.stor.warn .bar i{background:var(--amber)}
+.stor.bad{border-color:var(--red)}.stor.bad .bar i{background:var(--red)}
+.links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 16px 0}
+.links button{font-size:.85rem;padding:9px 14px;color:var(--muted)}
+.lbl{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);margin:12px 0 8px}
+.lst.tpl{max-height:42vh;overflow-y:auto;padding:2px}
+.lst.tpl button span{display:block;line-height:1.25}
+.lst.tpl small{display:block;color:var(--muted);font-size:.78rem;font-weight:400}
+.lst.tpl button.on,.chips button.on,.seg button.on{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan),inset 0 1px 0 rgba(255,255,255,.4)}
+.lst.tpl button.on svg.i{color:var(--cyan)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;padding:8px 12px;font-size:.85rem;white-space:nowrap}
+.seg{display:flex;gap:6px;margin-top:8px}
+.seg button{flex:1;padding:10px 4px;font-size:.85rem}
+.bac{display:block;max-width:100%;max-height:32vh;width:auto;height:auto;margin:0 auto;border-radius:12px;border:1px solid var(--line);background:#000}
+.info{font-size:.93rem;line-height:1.5}
+.info ol,.info ul{margin:0;padding-left:1.25em}
+.info li{margin-bottom:8px}
+.info p{color:var(--muted);margin:12px 0 0}
+dialog{overflow-y:auto}
+button[disabled]{opacity:.35}
 </style>
 </head>
 <body>
@@ -217,35 +264,114 @@ const ICONS48={
  'headlight':'<path d="M27 9C37 9.5 43 16 43 24C43 32 37 38.5 27 39C22.5 34.5 22.5 13.5 27 9Z" fill="currentColor" fill-opacity=".3"/><path d="M5 13.5H17.5M5 20.5H16M5 27.5H16M5 34.5H17.5"/>',
  'key':'<circle cx="13.5" cy="24" r="8" fill="currentColor" fill-opacity=".3"/><circle cx="11.5" cy="24" r="2"/><path d="M21.5 24H43M36 24V30.5M41.5 24V29"/>',
  'paw':'<path d="M24 23C19 23 13.5 29 13.5 34.5C13.5 39 18 40 24 38C30 40 34.5 39 34.5 34.5C34.5 29 29 23 24 23Z" fill="currentColor" fill-opacity=".3"/><ellipse cx="10.5" cy="20.5" rx="3.2" ry="4.2"/><ellipse cx="19" cy="12" rx="3.2" ry="4.4"/><ellipse cx="29" cy="12" rx="3.2" ry="4.4"/><ellipse cx="37.5" cy="20.5" rx="3.2" ry="4.2"/>',
- 'stain':'<path d="M24 8C30 8 30 14 36 15C42 16 42 24 38 27C34 30 38 36 32 39C26 42 24 36 18 38C12 40 8 34 12 29C15 25 8 22 11 16C14 10 19 14 24 8Z" fill="currentColor" fill-opacity=".3"/><circle cx="41" cy="38" r="2.2"/><circle cx="7.5" cy="41" r="1.6"/>'
+ 'stain':'<path d="M24 8C30 8 30 14 36 15C42 16 42 24 38 27C34 30 38 36 32 39C26 42 24 36 18 38C12 40 8 34 12 29C15 25 8 22 11 16C14 10 19 14 24 8Z" fill="currentColor" fill-opacity=".3"/><circle cx="41" cy="38" r="2.2"/><circle cx="7.5" cy="41" r="1.6"/>',
+ 'sofa':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/>',
+ 'sofa-seat':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2" fill="currentColor" fill-opacity=".3"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/>',
+ 'sofa-back':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z" fill="currentColor" fill-opacity=".3"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/>',
+ 'sofa-arm-l':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5" fill="currentColor" fill-opacity=".3"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/>',
+ 'sofa-arm-r':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5" fill="currentColor" fill-opacity=".3"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/>',
+ 'sofa-dirty':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'sofa-clean':'<path d="M12 25V13Q12 9 16 9H32Q36 9 36 13V25Z"/><rect x="4" y="19" width="8" height="17" rx="3.5"/><rect x="36" y="19" width="8" height="17" rx="3.5"/><rect x="12" y="25" width="24" height="9" rx="2"/><path d="M24 9V34M12 36.5H36M8 36V40M40 36V40"/><path d="M43 3Q43 7 47 7Q43 7 43 11Q43 7 39 7Q43 7 43 3Z" fill="currentColor" fill-opacity=".35"/><path d="M5 6Q5 9 8 9Q5 9 5 12Q5 9 2 9Q5 9 5 6Z" fill="currentColor" fill-opacity=".35"/><path d="M45 15Q45 17 47 17Q45 17 45 19Q45 17 43 17Q45 17 45 15Z" fill="currentColor" fill-opacity=".35"/>',
+ 'cushion':'<path d="M9 11Q24 15 39 11Q35 24 39 37Q24 33 9 37Q13 24 9 11Z" fill="currentColor" fill-opacity=".3"/><circle cx="24" cy="24" r="1.8"/><path d="M24 24L14.5 16.5M24 24L33.5 16.5M24 24L14.5 31.5M24 24L33.5 31.5" stroke-dasharray="0 3.2"/>',
+ 'mattress':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g>',
+ 'mattress-head':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><path d="M10 24V8.5Q10 4 14.5 4H33.5Q38 4 38 8.5V24Z" fill="currentColor" fill-opacity=".3"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g>',
+ 'mattress-foot':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><path d="M10 24V39.5Q10 44 14.5 44H33.5Q38 44 38 39.5V24Z" fill="currentColor" fill-opacity=".3"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g>',
+ 'mattress-edge':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g><path d="M38 9V39" stroke-width="5"/>',
+ 'mattress-dirty':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'mattress-clean':'<rect x="10" y="4" width="28" height="40" rx="4.5"/><rect x="13.8" y="7.8" width="20.4" height="32.4" rx="2.5" stroke-dasharray="2.2 2.8"/><g fill="currentColor" stroke="none"><circle cx="19.5" cy="14" r="1.1"/><circle cx="28.5" cy="14" r="1.1"/><circle cx="19.5" cy="24" r="1.1"/><circle cx="28.5" cy="24" r="1.1"/><circle cx="19.5" cy="34" r="1.1"/><circle cx="28.5" cy="34" r="1.1"/></g><path d="M43 3Q43 7 47 7Q43 7 43 11Q43 7 39 7Q43 7 43 3Z" fill="currentColor" fill-opacity=".35"/><path d="M5 6Q5 9 8 9Q5 9 5 12Q5 9 2 9Q5 9 5 6Z" fill="currentColor" fill-opacity=".35"/><path d="M45 15Q45 17 47 17Q45 17 45 19Q45 17 43 17Q45 17 45 15Z" fill="currentColor" fill-opacity=".35"/>',
+ 'rug':'<rect x="11" y="8" width="26" height="32" rx="1.5"/><rect x="15" y="12" width="18" height="24" rx="1"/><path d="M24 17L29 24L24 31L19 24Z" fill="currentColor" fill-opacity=".3"/><path d="M13 8V4.5M17.4 8V4.5M21.8 8V4.5M26.2 8V4.5M30.6 8V4.5M35 8V4.5M13 40V43.5M17.4 40V43.5M21.8 40V43.5M26.2 40V43.5M30.6 40V43.5M35 40V43.5"/>',
+ 'rug-edge':'<rect x="11" y="8" width="26" height="32" rx="1.5"/><rect x="15" y="12" width="18" height="24" rx="1"/><path d="M24 17L29 24L24 31L19 24Z" fill="currentColor" fill-opacity=".3"/><path d="M13 8V4.5M17.4 8V4.5M21.8 8V4.5M26.2 8V4.5M30.6 8V4.5M35 8V4.5M13 40V43.5M17.4 40V43.5M21.8 40V43.5M26.2 40V43.5M30.6 40V43.5M35 40V43.5" stroke-width="4.4"/>',
+ 'rug-dirty':'<rect x="11" y="8" width="26" height="32" rx="1.5"/><rect x="15" y="12" width="18" height="24" rx="1"/><path d="M24 17L29 24L24 31L19 24Z" fill="currentColor" fill-opacity=".3"/><path d="M13 8V4.5M17.4 8V4.5M21.8 8V4.5M26.2 8V4.5M30.6 8V4.5M35 8V4.5M13 40V43.5M17.4 40V43.5M21.8 40V43.5M26.2 40V43.5M30.6 40V43.5M35 40V43.5"/><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'rug-clean':'<rect x="11" y="8" width="26" height="32" rx="1.5"/><rect x="15" y="12" width="18" height="24" rx="1"/><path d="M24 17L29 24L24 31L19 24Z" fill="currentColor" fill-opacity=".3"/><path d="M13 8V4.5M17.4 8V4.5M21.8 8V4.5M26.2 8V4.5M30.6 8V4.5M35 8V4.5M13 40V43.5M17.4 40V43.5M21.8 40V43.5M26.2 40V43.5M30.6 40V43.5M35 40V43.5"/><path d="M43 3Q43 7 47 7Q43 7 43 11Q43 7 39 7Q43 7 43 3Z" fill="currentColor" fill-opacity=".35"/><path d="M5 6Q5 9 8 9Q5 9 5 12Q5 9 2 9Q5 9 5 6Z" fill="currentColor" fill-opacity=".35"/><path d="M45 15Q45 17 47 17Q45 17 45 19Q45 17 43 17Q45 17 45 15Z" fill="currentColor" fill-opacity=".35"/>',
+ 'bucket':'<path d="M9.5 16H38.5L35.4 39.6Q35 42.5 32 42.5H16Q13 42.5 12.6 39.6Z"/><path d="M9.5 16Q24 0 38.5 16"/><path d="M11 26.5Q15.3 23.5 19.6 26.5T28.4 26.5T37 26.5L35.4 39.6Q35 42.5 32 42.5H16Q13 42.5 12.6 39.6Z" fill="currentColor" fill-opacity=".3"/>',
+ 'brush':'<path d="M13 14Q24 3 35 14"/><rect x="7" y="14" width="34" height="10" rx="4" fill="currentColor" fill-opacity=".3"/><path d="M11.5 24V33M16.5 24V34.5M21.5 24V35M26.5 24V35M31.5 24V34.5M36.5 24V33"/>',
+ 'squeegee':'<rect x="6" y="8" width="36" height="6.4" rx="2.6" fill="currentColor" fill-opacity=".3"/><path d="M15 14.4L20.5 21.5H27.5L33 14.4"/><rect x="21.6" y="21.5" width="4.8" height="21" rx="2.4"/>',
+ 'pillar':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/><path d="M27.75 17V29.5M16.5 29.5H31.8" stroke-width="4.6"/>'
 };
 function ico(n,c=''){if(ICONS48[n])return `<svg class="i i48 ${c}" viewBox="0 0 48 48" aria-hidden="true">${ICONS48[n]}</svg>`;const q=ICONS[n]||ICONS.star;return `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${q}</svg>`}
 const ICON_CHOICES=['star','search','wheel','spray','vacuum','sponge','drop','sparkles','headlight','key','paw','stain'];
 
-/* ---------- Plans par défaut (dans l'ordre du parcours) ---------- */
-const DEFAULT_ZONES=[
- {g:'Vue d’ensemble',id:'ext-av',l:'Extérieur avant',e:'car-front'},
- {g:'Vue d’ensemble',id:'ext-ar',l:'Extérieur arrière',e:'car-rear'},
- {g:'Vue d’ensemble',id:'int-large',l:'Intérieur plan large',e:'car-top'},
- {g:'Côté conducteur',id:'cd-porte',l:'Porte conducteur',e:'door-fl'},
- {g:'Côté conducteur',id:'cd-siege',l:'Siège conducteur',e:'seat-driver'},
- {g:'Côté conducteur',id:'cd-sol',l:'Sol conducteur',e:'floor-driver'},
- {g:'Côté passager',id:'cp-porte',l:'Porte passager',e:'door-fr'},
- {g:'Côté passager',id:'cp-siege',l:'Siège passager',e:'seat-pass'},
- {g:'Côté passager',id:'cp-sol',l:'Sol passager',e:'floor-pass'},
- {g:'Arrière',id:'ar-g-porte',l:'Porte arrière gauche',e:'door-rl'},
- {g:'Arrière',id:'ar-g-sol',l:'Sol arrière gauche',e:'floor-rl'},
- {g:'Arrière',id:'banquette',l:'Banquette arrière',e:'bench'},
- {g:'Arrière',id:'ar-d-porte',l:'Porte arrière droite',e:'door-rr'},
- {g:'Arrière',id:'ar-d-sol',l:'Sol arrière droit',e:'floor-rr'},
- {g:'Coffre',id:'coffre',l:'Coffre',e:'trunk'},
- {g:'Poste de conduite',id:'tdb',l:'Tableau de bord',e:'dash'},
- {g:'Poste de conduite',id:'volant',l:'Volant',e:'steering'},
- {g:'Poste de conduite',id:'console',l:'Console centrale',e:'shifter'},
- {g:'Poste de conduite',id:'ciel',l:'Ciel de toit',e:'roof'},
- {g:'Poste de conduite',id:'aeration',l:'Aérations / détails',e:'vent'},
-];
-
+/* ---------- Bibliothèque de plans (g = groupe, l = nom, e = icône, t = conseil de cadrage) ---------- */
+const TIP_PORTE='Porte grande ouverte : toute la garniture dans le cadre, avec la poignée, le bac et le seuil.';
+const TIP_SIEGE='De trois quarts depuis la porte : assise et dossier visibles en entier.';
+const TIP_SOL_AR='Vue plongeante : avance le siège avant pour dégager le sol.';
+const TIP_TACHE='Très gros plan, lumière de côté pour faire ressortir la tache.';
+const Z={
+ 'ext-av':{g:'Vue d’ensemble',l:'Extérieur avant',e:'car-front',t:'Recule de trois pas : voiture entière dans le cadre, téléphone à hauteur des phares.'},
+ 'ext-ar':{g:'Vue d’ensemble',l:'Extérieur arrière',e:'car-rear',t:'Même distance que pour l’avant, bien dans l’axe de la voiture.'},
+ 'int-large':{g:'Vue d’ensemble',l:'Intérieur plan large',e:'car-top',t:'Depuis une porte arrière ouverte, en grand angle (0,5x), vers le tableau de bord.'},
+ 'cd-porte':{g:'Côté conducteur',l:'Porte conducteur',e:'door-fl',t:TIP_PORTE},
+ 'cd-siege':{g:'Côté conducteur',l:'Siège conducteur',e:'seat-driver',t:TIP_SIEGE},
+ 'cd-sol':{g:'Côté conducteur',l:'Sol conducteur',e:'floor-driver',t:'Vue plongeante : pédales et tapis dans le cadre, sans tes pieds.'},
+ 'cp-porte':{g:'Côté passager',l:'Porte passager',e:'door-fr',t:TIP_PORTE},
+ 'cp-siege':{g:'Côté passager',l:'Siège passager',e:'seat-pass',t:TIP_SIEGE},
+ 'cp-sol':{g:'Côté passager',l:'Sol passager',e:'floor-pass',t:'Vue plongeante depuis la porte : tout le tapis, jusque sous la boîte à gants.'},
+ 'ar-g-porte':{g:'Arrière',l:'Porte arrière gauche',e:'door-rl',t:TIP_PORTE},
+ 'ar-g-sol':{g:'Arrière',l:'Sol arrière gauche',e:'floor-rl',t:TIP_SOL_AR},
+ 'banquette':{g:'Arrière',l:'Banquette arrière',e:'bench',t:'Depuis une porte arrière : toute la largeur de la banquette, assise et dossier.'},
+ 'ar-d-porte':{g:'Arrière',l:'Porte arrière droite',e:'door-rr',t:TIP_PORTE},
+ 'ar-d-sol':{g:'Arrière',l:'Sol arrière droit',e:'floor-rr',t:TIP_SOL_AR},
+ 'coffre':{g:'Coffre',l:'Coffre',e:'trunk',t:'Hayon ouvert, bien de face : le plancher en entier et les côtés.'},
+ 'tdb':{g:'Poste de conduite',l:'Tableau de bord',e:'dash',t:'Depuis la banquette, au centre : toute la planche de bord, d’une porte à l’autre.'},
+ 'volant':{g:'Poste de conduite',l:'Volant',e:'steering',t:'Gros plan, volant droit : jante, branches et commandes nettes.'},
+ 'console':{g:'Poste de conduite',l:'Console centrale',e:'shifter',t:'Vue plongeante : levier, porte-gobelets et rangements.'},
+ 'ciel':{g:'Poste de conduite',l:'Ciel de toit',e:'roof',t:'Téléphone vers le haut depuis la banquette, en grand angle.'},
+ 'aeration':{g:'Poste de conduite',l:'Aérations / détails',e:'vent',t:'Très gros plan sur les grilles et les recoins : c’est là que la poussière se voit.'},
+ /* Auto : plans d'action (pendant) */
+ 'p-aspi':{g:'Plans d’action',l:'Aspiration',e:'vacuum',t:'Vidéo de 5 à 8 secondes en gros plan : on doit voir la saleté disparaître sous l’embout.'},
+ 'p-sieges':{g:'Plans d’action',l:'Shampouinage des sièges',e:'brush',t:'Filme le produit, puis la brosse qui fait mousser, puis l’extraction.'},
+ 'p-moquette':{g:'Plans d’action',l:'Shampouinage des moquettes',e:'sponge',t:'Une moitié faite, une moitié pas : filme la ligne de contraste.'},
+ 'p-eau':{g:'Plans d’action',l:'Eau sale récupérée',e:'bucket',t:'Le bac ou le seau d’eau sale en gros plan : c’est le plan qui marque le plus.'},
+ 'p-plastiques':{g:'Plans d’action',l:'Plastiques',e:'spray',t:'Pulvérise, puis filme le passage de la microfibre sur le tableau de bord.'},
+ 'p-montants':{g:'Plans d’action',l:'Montants de porte',e:'pillar',t:'Gros plan sur le seuil et les charnières pendant l’essuyage.'},
+ 'p-coffre':{g:'Plans d’action',l:'Coffre',e:'trunk',t:'L’aspiration du plancher, filmée depuis l’extérieur.'},
+ 'p-tapis':{g:'Plans d’action',l:'Tapis de voiture',e:'floor-pass',t:'Tapis sortis et posés au sol : filme le brossage, puis le résultat.'},
+ 'p-vitres':{g:'Plans d’action',l:'Vitres',e:'squeegee',t:'Filme à travers la vitre pendant l’essuyage : la trace qui disparaît.'},
+ 'p-finition':{g:'Plans d’action',l:'Finitions (soufflage)',e:'wind',t:'Soufflette dans les aérations et les rails : la poussière qui s’envole.'},
+ 'p-ext':{g:'Plans d’action',l:'Lavage extérieur',e:'drop',t:'La mousse qui recouvre la carrosserie, puis le rinçage, en plan large.'},
+ 'p-jantes':{g:'Plans d’action',l:'Jantes',e:'wheel',t:'Gros plan sur une jante : le produit qui agit, puis le rinçage.'},
+ /* Canapé / fauteuil */
+ 'c-ens':{g:'Canapé',l:'Vue d’ensemble',e:'sofa',t:'Bien de face, à hauteur d’assise : le canapé entier dans le cadre.'},
+ 'c-34':{g:'Canapé',l:'Vue de trois quarts',e:'sofa',t:'Depuis un angle de la pièce, pour montrer le volume.'},
+ 'c-assise':{g:'Canapé',l:'Assises',e:'sofa-seat',t:'Vue plongeante sur les coussins d’assise.'},
+ 'c-dossier':{g:'Canapé',l:'Dossiers',e:'sofa-back',t:'De face, cadré sur les dossiers.'},
+ 'c-acc-g':{g:'Canapé',l:'Accoudoir gauche',e:'sofa-arm-l',t:'Gros plan : c’est souvent la zone la plus marquée.'},
+ 'c-acc-d':{g:'Canapé',l:'Accoudoir droit',e:'sofa-arm-r',t:'Gros plan : c’est souvent la zone la plus marquée.'},
+ 'c-coussins':{g:'Canapé',l:'Coussins',e:'cushion',t:'Coussins posés à plat, côte à côte.'},
+ 'c-tache':{g:'Canapé',l:'Zone la plus tachée',e:'stain',t:TIP_TACHE},
+ /* Matelas */
+ 'm-ens':{g:'Matelas',l:'Vue d’ensemble',e:'mattress',t:'Depuis le pied du lit, en hauteur : le matelas entier dans le cadre.'},
+ 'm-tete':{g:'Matelas',l:'Côté tête',e:'mattress-head',t:'Vue plongeante sur la moitié haute.'},
+ 'm-pieds':{g:'Matelas',l:'Côté pieds',e:'mattress-foot',t:'Vue plongeante sur la moitié basse.'},
+ 'm-bords':{g:'Matelas',l:'Bords et coutures',e:'mattress-edge',t:'Gros plan le long d’un bord, en suivant la couture.'},
+ 'm-tache':{g:'Matelas',l:'Zone la plus tachée',e:'stain',t:TIP_TACHE},
+ /* Tapis */
+ 'r-ens':{g:'Tapis',l:'Vue d’ensemble',e:'rug',t:'Vue plongeante, tapis entier, bords parallèles au cadre.'},
+ 'r-fibres':{g:'Tapis',l:'Gros plan sur les fibres',e:'search',t:'Téléphone à dix centimètres, lumière rasante.'},
+ 'r-bords':{g:'Tapis',l:'Bords et franges',e:'rug-edge',t:'Gros plan sur un angle et ses franges.'},
+ 'r-tache':{g:'Tapis',l:'Zone la plus tachée',e:'stain',t:TIP_TACHE},
+ /* Textiles : plans d'action */
+ 't-aspi':{g:'Plans d’action',l:'Aspiration',e:'vacuum',t:'Vidéo de 5 à 8 secondes en gros plan sur l’embout.'},
+ 't-pre':{g:'Plans d’action',l:'Pré-traitement',e:'spray',t:'La pulvérisation du produit sur les taches.'},
+ 't-brosse':{g:'Plans d’action',l:'Brossage',e:'brush',t:'La brosse qui fait mousser, en gros plan.'},
+ 't-extraction':{g:'Plans d’action',l:'Extraction',e:'drop',t:'Une bande faite, une bande pas : filme la ligne de contraste.'},
+ 't-eau':{g:'Plans d’action',l:'Eau sale récupérée',e:'bucket',t:'Le bac d’eau sale en gros plan : c’est le plan qui marque le plus.'},
+};
+const AUTO_AB=['ext-av','ext-ar','int-large','cd-porte','cd-siege','cd-sol','cp-porte','cp-siege','cp-sol','ar-g-porte','ar-g-sol','banquette','ar-d-porte','ar-d-sol','coffre','tdb','volant','console','ciel','aeration'];
+const AUTO_PD=['p-aspi','p-sieges','p-moquette','p-eau','p-plastiques','p-montants','p-coffre','p-tapis','p-vitres','p-finition','p-ext','p-jantes'];
+const TEX_PD=['t-aspi','t-pre','t-brosse','t-extraction','t-eau'];
+/* Listes selon la prestation */
+const TPL={
+ 'auto-complet':{fam:'auto',l:'Auto · Complet',d:'Intérieur et extérieur',ab:AUTO_AB,pd:AUTO_PD},
+ 'auto-interieur':{fam:'auto',l:'Auto · Intérieur',d:'Sans les extérieurs',ab:AUTO_AB.filter(x=>!x.startsWith('ext-')),pd:AUTO_PD.filter(x=>x!=='p-ext'&&x!=='p-jantes')},
+ 'auto-express':{fam:'auto',l:'Auto · Express',d:'Les plans essentiels',ab:['ext-av','int-large','cd-siege','cd-sol','cp-siege','banquette','coffre','tdb'],pd:['p-aspi','p-plastiques','p-vitres']},
+ 'canape':{fam:'canape',l:'Canapé / fauteuil',d:'Textile à domicile',ab:['c-ens','c-34','c-assise','c-dossier','c-acc-g','c-acc-d','c-coussins','c-tache'],pd:TEX_PD},
+ 'matelas':{fam:'matelas',l:'Matelas',d:'Textile à domicile',ab:['m-ens','m-tete','m-pieds','m-bords','m-tache'],pd:TEX_PD},
+ 'tapis':{fam:'tapis',l:'Tapis',d:'Textile à domicile',ab:['r-ens','r-fibres','r-bords','r-tache'],pd:TEX_PD},
+};
+const FAM={auto:{e:'car-side',a:'car-dirty',b:'car-clean'},canape:{e:'sofa',a:'sofa-dirty',b:'sofa-clean'},matelas:{e:'mattress',a:'mattress-dirty',b:'mattress-clean'},tapis:{e:'rug',a:'rug-dirty',b:'rug-clean'}};
+const PHASES=['avant','pendant','apres'];
+const PH={avant:'AVANT',pendant:'PENDANT',apres:'APRÈS'};
 
 /* ---------- IndexedDB ---------- */
 let db;
@@ -260,18 +386,28 @@ const p=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>r
 const getSessions=()=>p(tx('sessions').getAll());
 const putSession=s=>p(tx('sessions','readwrite').put(s));
 const getMedia=sid=>p(tx('media').index('sid').getAll(sid));
-const putMedia=m=>p(tx('media','readwrite').put(m));
+/* l'écriture n'est confirmée qu'à la fin de la transaction (sinon un manque de place passe inaperçu) */
+function putMedia(m){return new Promise((res,rej)=>{
+ const t=db.transaction('media','readwrite');t.objectStore('media').put(m);
+ t.oncomplete=()=>res();t.onabort=t.onerror=()=>rej(t.error||new Error('abort'))})}
 const delMedia=id=>p(tx('media','readwrite').delete(id));
 async function delSession(id){const ms=await getMedia(id);for(const m of ms)await delMedia(m.id);await p(tx('sessions','readwrite').delete(id))}
 
 /* ---------- État ---------- */
 const $=s=>document.querySelector(s);
 let sess=null, media=[], phase='avant', cur=null, urls=[], idx=0;
-const PH={avant:'AVANT',apres:'APRÈS'};
-const customZones=()=>JSON.parse(localStorage.getItem('zonesPerso')||'[]');
-const allZones=()=>[...DEFAULT_ZONES,...customZones().map(z=>({...z,g:'Mes plans libres'}))];
-function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',2400)}
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+function customZones(){try{const a=JSON.parse(lsGet('zonesPerso','[]'));return Array.isArray(a)?a:[]}catch(e){return []}}
+const tpl=()=>TPL[sess&&sess.type]||TPL['auto-complet'];
+function zonesFor(ph){
+ const t=tpl(),k=ph==='pendant'?'pd':'ab';
+ return [...t[k].map(id=>({id,...Z[id]})),...customZones().filter(c=>(c.fam||'auto')===t.fam&&(c.ph||'ab')===k).map(z=>({...z,g:'Mes plans libres'}))]}
+const allZones=()=>zonesFor(phase);
+function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',2600)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtSize(b){if(b<1048576)return Math.max(1,Math.round(b/1024))+' Ko';if(b<1073741824)return Math.round(b/1048576)+' Mo';return (b/1073741824).toFixed(1).replace('.',',')+' Go'}
+
 /* ---------- Boîtes de dialogue intégrées (pas d'alertes du navigateur) ---------- */
 function askText(title,ph,val=''){return new Promise(res=>{
  const d=$('#dlg');
@@ -290,66 +426,124 @@ function askConfirm(msg,label='Supprimer'){return new Promise(res=>{
  $('#ac').onclick=()=>d.close();
  $('#aok').onclick=()=>{out=true;d.close()};
  d.showModal()})}
+function infoDlg(title,html,btn='Fermer'){return new Promise(res=>{
+ const d=$('#dlg');
+ d.innerHTML=`<h3>${esc(title)}</h3><div class="info">${html}</div><button class="primary" id="cl" style="width:100%;margin-top:14px">${esc(btn)}</button>`;
+ d.onclose=()=>{d.onclose=null;res()};
+ $('#cl').onclick=()=>d.close();
+ d.showModal()})}
 function revoke(){urls.forEach(URL.revokeObjectURL);urls=[]}
 const url=b=>{const u=URL.createObjectURL(b);urls.push(u);return u};
 function count(z,ph){const m=media.filter(x=>x.zone===z&&x.phase===ph);return{p:m.filter(x=>x.type==='photo').length,v:m.filter(x=>x.type==='video').length,all:m}}
-const doneCount=ph=>allZones().filter(z=>count(z.id,ph).all.length).length;
+const doneCount=ph=>zonesFor(ph).filter(z=>count(z.id,ph).all.length).length;
 
 /* ---------- Marque & thème ---------- */
 const isLight=()=>document.documentElement.getAttribute('data-theme')==='light';
 function brandHeader(){return `<header><div class="nav"><div class="logo"><span class="logo-mark"><img src="images/logo-ab.png" alt="" width="36" height="24"></span><span class="logo-text">Plans <span>Brillance</span></span></div><button type="button" class="theme-toggle ic-only" id="theme" aria-label="Basculer jour/nuit">${ico(isLight()?'sun':'moon')}</button></div></header>`}
 function bindTheme(){const b=$('#theme');if(!b)return;b.onclick=()=>{
  if(isLight())document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme','light');
- try{localStorage.setItem('abs_theme',isLight()?'light':'dark')}catch(e){}
+ lsSet('abs_theme',isLight()?'light':'dark');
  b.innerHTML=ico(isLight()?'sun':'moon')}}
+
+/* ---------- Place utilisée ---------- */
+async function storageInfo(){
+ let used=0,quota=0;
+ try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();used=e.usage||0;quota=e.quota||0}}catch(e){}
+ return {used,quota}}
+function storageHtml(appBytes,si){
+ const used=Math.max(si.used,appBytes);
+ if(!used)return '';
+ const r=si.quota?used/si.quota:0;
+ const lvl=r>.9?'bad':r>.7?'warn':'';
+ const txt=si.quota?`${fmtSize(used)} utilisés sur ${fmtSize(si.quota)} disponibles`:`${fmtSize(used)} utilisés`;
+ return `<div class="stor ${lvl}"><div class="row"><span>${ico('package')} Place utilisée par l’app</span><span class="sp"></span><b>${Math.round(r*100)||'<1'} %</b></div><div class="bar"><i style="width:${Math.max(2,Math.round(r*100))}%"></i></div><small>${txt}${lvl?'. Exporte tes anciens nettoyages puis supprime-les pour libérer de la place.':''}</small></div>`}
 
 /* ---------- Accueil : liste des nettoyages ---------- */
 async function home(){
  sess=null;revoke();
  const list=(await getSessions()).sort((a,b)=>b.ts-a.ts);
- let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo</span><h1>Ne rate plus aucun <span>plan</span></h1><p>Les bons plans de ton nettoyage, avant et après, pour un montage qui claque.</p></div>
+ let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo</span><h1>Ne rate plus aucun <span>plan</span></h1><p>Les bons plans de ton nettoyage, avant, pendant et après, pour un montage qui claque.</p></div>
  <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage</button></div>
  <h2>Nettoyages</h2>`;
- if(!list.length)h+=`<div class="hint">Aucun nettoyage pour l’instant. Crée-en un avant de commencer le véhicule.</div>`;
+ if(!list.length)h+=`<div class="hint">Aucun nettoyage pour l’instant. Crée-en un avant de commencer.</div>`;
+ let total=0;
  for(const s of list){
-  const ms=await getMedia(s.id);
-  h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico('car-side')}</div><div class="sp"><b>${esc(s.name)}</b><small>${new Date(s.ts).toLocaleDateString('fr-FR')} · ${ms.length} fichier(s)</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
+  const ms=await getMedia(s.id);const size=ms.reduce((a,m)=>a+(m.blob?m.blob.size:0),0);total+=size;
+  const t=TPL[s.type]||TPL['auto-complet'];
+  h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico(FAM[t.fam].e)}</div><div class="sp"><b>${esc(s.name)}</b><small>${esc(t.l)} · ${new Date(s.ts).toLocaleDateString('fr-FR')}<br>${ms.length} fichier(s)${size?' · '+fmtSize(size):''}</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
+ h+=storageHtml(total,await storageInfo());
  h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
- <div class="hint">Ajoute l’app à l’écran d’accueil (Partager → Sur l’écran d’accueil) pour l’ouvrir comme une vraie app.</div>`;
+ <div class="links"><button id="how">Comment ça marche</button><button id="priv">Confidentialité</button></div>`;
  $('#app').innerHTML=h;
  $('#new').onclick=newSession;bindTheme();
+ $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;
  document.querySelectorAll('.sess').forEach(el=>el.onclick=async e=>{
   const del=e.target.closest('[data-del]');if(del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(del.dataset.del);home()}return}
   open_(el.dataset.id)});
+ if(lsGet('pb_vu','')!=='1'){lsSet('pb_vu','1');howDlg(true)}
 }
-async function newSession(){
- const name=await askText('Nouveau nettoyage','Véhicule (ex : Clio 4 grise, plaque…)');
- if(!name)return;
- const s={id:crypto.randomUUID(),name:name.trim().slice(0,80),ts:Date.now(),avantDone:false,apresDone:false};
- await putSession(s);open_(s.id)}
+function howDlg(first){
+ return infoDlg(first?'Bienvenue sur Plans Brillance':'Comment ça marche',`<ol>
+ <li><b>Crée un nettoyage</b> et choisis la prestation : auto, canapé, matelas ou tapis.</li>
+ <li><b>AVANT</b> : swipe de plan en plan et prends une photo ou une vidéo à chaque écran. Un conseil de cadrage t’aide sur chacun.</li>
+ <li><b>PENDANT</b> (facultatif) : filme les plans d’action, comme l’aspiration ou l’eau sale.</li>
+ <li><b>APRÈS</b> : l’app te remontre ta photo d’avant pour reprendre le même angle.</li>
+ <li><b>Exporte</b> : les fichiers sortent nommés dans l’ordre, prêts pour le montage. Tu peux aussi créer une image avant/après à poster.</li>
+ </ol><p>Pour l’utiliser comme une vraie app : dans Safari, Partager puis « Sur l’écran d’accueil ».</p>`,first?'C’est parti':'Fermer')}
+function privDlg(){
+ return infoDlg('Confidentialité',`<ul>
+ <li><b>Aucun compte</b>, aucune inscription.</li>
+ <li>Tes photos, tes vidéos et les noms de tes nettoyages sont enregistrés <b>uniquement sur cet appareil</b>, dans ce navigateur. Rien n’est envoyé sur un serveur.</li>
+ <li>Pas de publicité, pas de traceur. Seuls tes réglages (thème, plans libres) sont mémorisés sur l’appareil.</li>
+ <li>L’appareil photo n’est utilisé que lorsque tu touches Photo ou Vidéo.</li>
+ <li>Comme pour tout site, l’hébergeur (Netlify) reçoit l’adresse IP de ton appareil au chargement des pages.</li>
+ <li>Pour tout effacer : supprime tes nettoyages avec la corbeille, ou efface les données du site dans les réglages du navigateur.</li>
+ </ul><p>Attention : si tu effaces les données du navigateur ou supprimes l’app, tes médias non exportés sont perdus.</p>`)}
+function newSession(){
+ const d=$('#dlg');let type=lsGet('pb_type','auto-complet');if(!TPL[type])type='auto-complet';
+ d.innerHTML=`<h3>Nouveau nettoyage</h3><input type="text" id="aq" maxlength="80" placeholder="Nom (ex : Clio 4 grise)">
+ <div class="lbl">Prestation</div>
+ <div class="lst tpl">${Object.entries(TPL).map(([k,t])=>`<button data-t="${k}" class="${k===type?'on':''}">${ico(FAM[t.fam].e)}<span><b>${esc(t.l)}</b><small>${esc(t.d)} · ${t.ab.length} plans</small></span></button>`).join('')}</div>
+ <div class="row" style="margin-top:14px"><button class="sp" id="ac">Annuler</button><button class="sp primary" id="aok">Créer</button></div>`;
+ d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{type=b.dataset.t;d.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x===b))});
+ $('#ac').onclick=()=>d.close();
+ $('#aok').onclick=async()=>{
+  const name=$('#aq').value.trim();
+  if(!name){$('#aq').focus();$('#aq').placeholder='Donne un nom à ce nettoyage';return}
+  lsSet('pb_type',type);
+  const s={id:crypto.randomUUID(),name:name.slice(0,80),ts:Date.now(),type,avantDone:false,pendantDone:false,apresDone:false};
+  await putSession(s);d.close();open_(s.id)};
+ $('#aq').onkeydown=e=>{if(e.key==='Enter')$('#aok').click()};
+ d.showModal()}
 async function open_(id){
  sess=(await getSessions()).find(s=>s.id===id);
+ if(!sess){home();return}
  media=await getMedia(id);hub()}
 
-/* ---------- Hub : AVANT / APRÈS ---------- */
+/* ---------- Hub : AVANT / PENDANT / APRÈS ---------- */
+function baZones(){return zonesFor('avant').filter(z=>count(z.id,'avant').p&&count(z.id,'apres').p)}
 function hub(){
  revoke();
- const n=allZones().length;
- const a=doneCount('avant'),b=doneCount('apres');
- const unlocked=sess.avantDone;
- let h=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><h1 class="sp" style="font-size:17px">${esc(sess.name)}</h1><button id="ren" class="ic-only" aria-label="Renommer">${ico('edit')}</button></div></header>
- <div class="hub">
-  <button class="sq a" id="sqA">${sess.avantDone?'<span class="ck">'+ico('check-circle')+'</span>':''}<span class="em">${ico('car-dirty')}</span><span class="step">Étape 1</span><strong>AVANT</strong><small>${a}/${n} plans</small></button>
-  <button class="sq b ${unlocked?'':'lock'}" id="sqB">${sess.apresDone?'<span class="ck">'+ico('check-circle')+'</span>':''}${unlocked?'':'<span class="ck">'+ico('lock')+'</span>'}<span class="em">${ico('car-clean')}</span><span class="step">Étape 2</span><strong>APRÈS</strong><small>${unlocked?`${b}/${n} plans`:'Termine l’avant d’abord'}</small></button>
- </div>
- <div class="hint" style="text-align:center">Touche <b>AVANT</b> avant de commencer le nettoyage, puis <b>APRÈS</b> quand c’est fini. Ensuite, swipe de plan en plan.</div>`;
+ const t=tpl(),f=FAM[t.fam],un=!!sess.avantDone;
+ const tile=(id,cls,ph,ic)=>{
+  const locked=ph!=='avant'&&!un,zs=zonesFor(ph);
+  const mark=sess[ph+'Done']?`<span class="ck">${ico('check-circle')}</span>`:locked?`<span class="ck">${ico('lock')}</span>`:'';
+  return `<button class="sq ${cls} ${locked?'lock':''}" id="${id}">${mark}<span class="em">${ico(ic)}</span><strong>${PH[ph]}</strong><small>${locked?'Après l’avant':doneCount(ph)+'/'+zs.length+' plans'}</small></button>`};
+ let h=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><div class="sp ht"><b>${esc(sess.name)}</b><small>${esc(t.l)}</small></div><button id="ren" class="ic-only" aria-label="Renommer">${ico('edit')}</button></div></header>
+ <div class="hub">${tile('sqA','a','avant',f.a)}${tile('sqP','c','pendant','spray')}${tile('sqB','b','apres',f.b)}</div>
+ <div class="hint" style="text-align:center"><b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
+ if(baZones().length)h+=`<div class="wrap" style="margin-top:10px"><button id="ba" style="width:100%;padding:16px">${ico('sparkles')} Créer un avant/après à poster</button></div>`;
+ else if(sess.avantDone)h+=`<div class="hint" style="text-align:center">Dès qu’un plan a une photo avant et une photo après, tu pourras créer une image avant/après à poster.</div>`;
  $('#app').innerHTML=h;
  $('#back').onclick=home;
- $('#ren').onclick=async()=>{const nn=await askText('Nom du véhicule','Ex : Clio 4 grise',sess.name);if(nn){sess.name=nn.trim().slice(0,80);await putSession(sess);hub()}};
+ $('#ren').onclick=async()=>{const nn=await askText('Nom du nettoyage','Ex : Clio 4 grise',sess.name);if(nn){sess.name=nn.trim().slice(0,80);await putSession(sess);hub()}};
  $('#sqA').onclick=()=>startFlow('avant');
- $('#sqB').onclick=()=>{if(!sess.avantDone){toast('Termine d’abord l’AVANT');return}startFlow('apres')};
+ const locked=()=>{if(!sess.avantDone){toast('Termine d’abord l’AVANT');return true}return false};
+ $('#sqP').onclick=()=>{if(!locked())startFlow('pendant')};
+ $('#sqB').onclick=()=>{if(!locked())startFlow('apres')};
  const e=$('#exp');if(e)e.onclick=exportDlg;
+ const b=$('#ba');if(b)b.onclick=baDlg;
 }
 
 /* ---------- Parcours en swipe ---------- */
@@ -362,7 +556,7 @@ function startFlow(ph){
 function renderFlow(){
  revoke();
  const zs=allZones(),n=zs.length;
- let h=`<div class="flow">
+ let h=`<div class="flow ph-${phase}">
   <div class="fh"><div class="row"><button id="fb" class="ic-only" aria-label="Retour">${ico('back')}</button><div class="sp t"><small id="fsub"></small><b id="ftitle"></b></div><button id="fl" class="ic-only" aria-label="Liste des plans">${ico('menu')}</button></div><div class="bar"><i id="fbar"></i></div></div>
   <div class="track" id="track">`;
  zs.forEach((z,i)=>h+=`<section class="slide" data-i="${i}">${slideHtml(z)}</section>`);
@@ -383,37 +577,49 @@ function goTo(i){
  const n=allZones().length;idx=Math.max(0,Math.min(n,i));
  const tr=$('#track');tr.scrollTo({left:idx*tr.clientWidth,behavior:'smooth'});updHead()}
 function updHead(){
+ if(!$('#fsub'))return; /* le parcours a été quitté entre-temps */
  const zs=allZones(),n=zs.length;
  const z=zs[idx];
  $('#fsub').textContent=z?`${PH[phase]} · ${idx+1}/${n} · ${z.g}`:`${PH[phase]} · Récapitulatif`;
  $('#ftitle').textContent=z?z.l:'Récapitulatif';
- $('#fbar').style.width=Math.round(doneCount(phase)/n*100)+'%';
+ $('#fbar').style.width=(n?Math.round(doneCount(phase)/n*100):0)+'%';
  $('#fprev').disabled=idx<=0;
  $('#fnext').style.visibility=idx>=n?'hidden':'visible';
 }
+function thumb(m,rm){
+ return `<div data-open="${esc(m.id)}">${m.type==='photo'?`<img src="${url(m.blob)}" alt="">`:`<video src="${url(m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">${ico('play')}</span>`}${rm?`<button class="x ic-only" data-rm="${esc(m.id)}" aria-label="Supprimer">${ico('x')}</button>`:''}</div>`}
 function slideHtml(z){
  const c=count(z.id,phase);
- const custom=z.id.startsWith('x-');
+ const custom=String(z.id).startsWith('x-');
+ /* à l'APRÈS : on remontre l'AVANT du même plan pour reprendre le même angle */
+ let ref='';
+ if(phase==='apres'){
+  const av=count(z.id,'avant').all.slice().sort((a,b)=>(a.type==='photo'?0:1)-(b.type==='photo'?0:1)||a.ts-b.ts).slice(0,3);
+  ref=av.length?`<div class="ref"><div class="rl">Ton avant · reprends le même angle</div><div class="tg">${av.map(m=>thumb(m,false)).join('')}</div></div>`
+   :`<div class="ref none">Pas de photo avant pour ce plan.</div>`}
  return `<div class="big">${ico(z.e)}</div>
  <h2 class="zn">${esc(z.l)}</h2><div class="zg">${esc(z.g)}</div>
+ ${z.t?`<div class="tip">${ico('camera')}<span>${esc(z.t)}</span></div>`:''}
+ ${ref}
  <div class="zc ${c.all.length?'ok':'no'}">${c.all.length?`${ico('check-circle')}${c.p} photo(s) · ${c.v} vidéo(s)`:'Rien de filmé pour ce plan'}</div>
  <div class="acts2"><button class="primary" data-a="photo" data-z="${esc(z.id)}">${ico('camera')} Photo</button><button class="primary" data-a="video" data-z="${esc(z.id)}">${ico('video')} Vidéo</button></div>
  <button class="wide" data-a="import" data-z="${esc(z.id)}">${ico('import')} Importer (lunettes / galerie)</button>
- ${c.all.length?`<div class="tg">${c.all.map(m=>`<div data-open="${esc(m.id)}">${m.type==='photo'?`<img src="${url(m.blob)}">`:`<video src="${url(m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">${ico('play')}</span>`}<button class="x ic-only" data-rm="${esc(m.id)}" aria-label="Supprimer">${ico('x')}</button></div>`).join('')}</div>`:''}
+ ${c.all.length?`<div class="tg">${c.all.map(m=>thumb(m,true)).join('')}</div>`:''}
  ${custom?`<button class="wide" style="background:transparent;color:var(--red)" data-delz="${esc(z.id)}">Supprimer ce plan libre</button>`:''}`}
 function finalHtml(zs){
  const miss=zs.map((z,i)=>({z,i})).filter(o=>!count(o.z.id,phase).all.length);
  const n=zs.length,d=n-miss.length;
+ const fin={avant:'l’avant',pendant:'les plans d’action',apres:'l’après'}[phase];
  return `<div class="big">${ico(miss.length?'search':'check-circle')}</div>
  <h2 class="zn">${d}/${n} plans filmés</h2>
  <div class="zg">${PH[phase]}</div>
- ${miss.length?`<div style="color:var(--muted);font-size:14px">Plans oubliés (touche pour y retourner) :</div><div class="miss">${miss.map(o=>`<button data-jump="${o.i}">${ico(o.z.e)}${esc(o.z.l)}</button>`).join('')}</div>`:`<div class="zc ok">Tous les plans sont faits, bravo !</div>`}
+ ${miss.length?`<div style="color:var(--muted);font-size:14px">${phase==='pendant'?'Plans pas encore filmés (facultatifs)':'Plans oubliés'} : touche pour y retourner.</div><div class="miss">${miss.map(o=>`<button data-jump="${o.i}">${ico(o.z.e)}${esc(o.z.l)}</button>`).join('')}</div>`:`<div class="zc ok">Tous les plans sont faits, bravo !</div>`}
  <button class="wide" data-addz="1">${ico('star')} Ajouter un plan libre</button>
- <button class="wide primary" style="padding:18px;font-size:17px" data-finish="1">${ico('check-circle')} Terminer ${phase==='avant'?'l’avant':'l’après'}</button>`}
+ <button class="wide primary" style="padding:18px;font-size:17px" data-finish="1">${ico('check-circle')} Terminer ${fin}</button>`}
 async function flowClick(e){
  const t=e.target;
  const a=t.closest('[data-a]');
- if(a){cur=a.dataset.z;({photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a]&&$({photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a]).click());return}
+ if(a){cur=a.dataset.z;const inp={photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a];if(inp)$(inp).click();return}
  const rm=t.closest('[data-rm]');
  if(rm){e.stopPropagation();if(await askConfirm('Supprimer ce média ?')){await delMedia(rm.dataset.rm);media=media.filter(x=>x.id!==rm.dataset.rm);renderFlow()}return}
  const op=t.closest('[data-open]');
@@ -426,29 +632,36 @@ async function flowClick(e){
    const id=dz.dataset.delz;
    for(const m of media.filter(x=>x.zone===id))await delMedia(m.id);
    media=media.filter(x=>x.zone!==id);
-   localStorage.setItem('zonesPerso',JSON.stringify(customZones().filter(z=>z.id!==id)));
+   lsSet('zonesPerso',JSON.stringify(customZones().filter(z=>z.id!==id)));
    idx=Math.min(idx,allZones().length);renderFlow()}return}
  if(t.closest('[data-finish]')){
-  if(phase==='avant')sess.avantDone=true;else sess.apresDone=true;
+  sess[phase+'Done']=true;
   await putSession(sess);
-  toast(phase==='avant'?'Avant terminé. Bon nettoyage !':'Après terminé. Tu peux exporter');
+  toast({avant:'Avant terminé. Bon nettoyage !',pendant:'Plans d’action enregistrés.',apres:'Après terminé. Tu peux exporter.'}[phase]);
   hub()}
 }
 async function addMedia(files){
- if(!cur||!files.length)return;
- let n=0;
+ if(!cur||!files.length||!sess)return;
+ let n=0,ok=0;
  for(const f of files){
   const isV=f.type.startsWith('video')||/\.(mov|mp4|m4v)$/i.test(f.name);
   const ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||(isV?'mov':'jpg');
   const m={id:crypto.randomUUID(),sid:sess.id,zone:cur,phase,type:isV?'video':'photo',blob:f,ext,ts:Date.now()+n++};
-  await putMedia(m);media.push(m)}
- toast(`${files.length} ajouté(s)`);renderFlow()}
+  try{await putMedia(m);media.push(m);ok++}
+  catch(e){
+   renderFlow();
+   infoDlg('Plus assez de place',`<p>Ce fichier n’a pas pu être enregistré : le stockage de l’appareil ou du navigateur est plein.</p><p>Exporte un ancien nettoyage, supprime-le depuis l’accueil, puis recommence.</p>`);
+   return}}
+ renderFlow();
+ const si=await storageInfo();
+ if(si.quota&&si.used/si.quota>.85)toast('Stockage presque plein : exporte puis supprime un ancien nettoyage');
+ else toast(`${ok} ajouté(s)`)}
 ['#inPhoto','#inVideo','#inImport'].forEach(s=>$(s).onchange=async e=>{const fs=[...e.target.files];e.target.value='';await addMedia(fs)});
 
 function showMedia(id){
  const m=media.find(x=>x.id===id);if(!m)return;
  const d=$('#dlg');
- d.innerHTML=(m.type==='photo'?`<img src="${url(m.blob)}">`:`<video src="${url(m.blob)}" controls autoplay playsinline></video>`)+`<button id="cl" style="width:100%;margin-top:12px">Fermer</button>`;
+ d.innerHTML=`<div class="rl" style="margin-bottom:8px">${PH[m.phase]||''}</div>`+(m.type==='photo'?`<img src="${url(m.blob)}" alt="">`:`<video src="${url(m.blob)}" controls autoplay playsinline></video>`)+`<button id="cl" style="width:100%;margin-top:12px">Fermer</button>`;
  $('#cl').onclick=()=>d.close();d.showModal()}
 function listDlg(){
  const zs=allZones();const d=$('#dlg');
@@ -464,30 +677,106 @@ function addZone(cb){
  d.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{em=b.dataset.e;d.querySelectorAll('[data-e]').forEach(x=>x.style.outline='');b.style.outline='2px solid var(--cyan)'});
  $('#c').onclick=()=>d.close();
  $('#ok').onclick=()=>{const l=$('#zn').value.trim();if(!l)return;
-  const z=customZones();z.push({id:'x-'+Date.now(),l,e:em});localStorage.setItem('zonesPerso',JSON.stringify(z));d.close();cb(allZones().length-1)};
+  const z=customZones();z.push({id:'x-'+Date.now(),l,e:em,fam:tpl().fam,ph:phase==='pendant'?'pd':'ab'});lsSet('zonesPerso',JSON.stringify(z));d.close();cb(allZones().length-1)};
  d.showModal()}
 
+/* ---------- Image avant/après prête à poster ---------- */
+const BA_FMT={story:{l:'Story 9:16',h:1920},post:{l:'Post 4:5',h:1350},carre:{l:'Carré',h:1080}};
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function drawCover(c,im,x,y,w,h){
+ const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;if(!iw||!ih)return;
+ const s=Math.max(w/iw,h/ih),sw=w/s,sh=h/s;
+ c.drawImage(im,(iw-sw)/2,(ih-sh)/2,sw,sh,x,y,w,h)}
+function drawPill(c,txt,x,y,bg,fg){
+ c.font='700 54px system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+ const w=c.measureText(txt).width+68,h=94;
+ rrect(c,x,y,w,h,47);c.fillStyle=bg;c.fill();
+ c.fillStyle=fg;c.textBaseline='middle';c.textAlign='left';c.fillText(txt,x+34,y+h/2+2)}
+function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('image'));im.src=src})}
+function baDlg(){
+ const zs=baZones();if(!zs.length)return;
+ const st={z:zs[0].id,ia:0,ib:0,fmt:lsGet('pb_bafmt','story'),lay:lsGet('pb_balay','v'),logo:lsGet('pb_balogo','1')==='1',blob:null,tok:0};
+ if(!BA_FMT[st.fmt])st.fmt='story';
+ const cache=new Map(),own=[];
+ const photos=ph=>media.filter(m=>m.zone===st.z&&m.phase===ph&&m.type==='photo').sort((a,b)=>a.ts-b.ts);
+ const img=async m=>{if(!cache.has(m.id)){const u=URL.createObjectURL(m.blob);own.push(u);cache.set(m.id,await loadImg(u))}return cache.get(m.id)};
+ const d=$('#dlg');
+ d.innerHTML=`<h3 style="margin-top:0">Avant/après à poster</h3>
+ <div class="chips" id="baz">${zs.map(z=>`<button data-z="${esc(z.id)}">${ico(z.e)}${esc(z.l)}</button>`).join('')}</div>
+ <canvas id="bac" class="bac" width="1080" height="1920"></canvas>
+ <div class="row" style="margin-top:10px"><button class="sp" id="baA">Autre avant</button><button class="sp" id="baB">Autre après</button></div>
+ <div class="seg" id="bafmt">${Object.entries(BA_FMT).map(([k,f])=>`<button data-v="${k}">${f.l}</button>`).join('')}</div>
+ <div class="seg" id="balay"><button data-v="v">Haut / bas</button><button data-v="h">Côte à côte</button></div>
+ <button id="balogo" style="width:100%;margin-top:8px"></button>
+ <div class="row" style="margin-top:12px"><button class="sp" id="cl">Fermer</button><button class="sp primary" id="basave">${ico('upload')} Enregistrer</button></div>`;
+ const sync=()=>{
+  d.querySelectorAll('#baz [data-z]').forEach(b=>b.classList.toggle('on',b.dataset.z===st.z));
+  d.querySelectorAll('#bafmt [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===st.fmt));
+  d.querySelectorAll('#balay [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===st.lay));
+  $('#balogo').textContent='Logo au centre : '+(st.logo?'oui':'non');
+  $('#baA').disabled=photos('avant').length<2;$('#baB').disabled=photos('apres').length<2};
+ async function draw(){
+  const tok=++st.tok;st.blob=null;sync();
+  const A=photos('avant'),B=photos('apres');if(!A.length||!B.length)return;
+  let ia,ib,lg=null;
+  try{[ia,ib]=await Promise.all([img(A[st.ia%A.length]),img(B[st.ib%B.length])])}catch(e){toast('Photo illisible pour ce plan');return}
+  if(st.logo){try{if(!cache.has('logo'))cache.set('logo',await loadImg('images/logo-ab.png'));lg=cache.get('logo')}catch(e){lg=null}}
+  const cv=$('#bac');if(!cv||tok!==st.tok)return;
+  const W=1080,H=BA_FMT[st.fmt].h;cv.width=W;cv.height=H;
+  const c=cv.getContext('2d');c.fillStyle='#0b0f14';c.fillRect(0,0,W,H);
+  const top=st.fmt==='story'?230:36;
+  if(st.lay==='v'){
+   drawCover(c,ia,0,0,W,H/2);drawCover(c,ib,0,H/2,W,H/2);
+   c.fillStyle='#35e0c9';c.fillRect(0,H/2-4,W,8);
+   drawPill(c,'AVANT',36,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',36,H/2+40,'#35e0c9','#06110f');
+  }else{
+   drawCover(c,ia,0,0,W/2,H);drawCover(c,ib,W/2,0,W/2,H);
+   c.fillStyle='#35e0c9';c.fillRect(W/2-4,0,8,H);
+   drawPill(c,'AVANT',30,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',W/2+34,top,'#35e0c9','#06110f')}
+  if(lg){
+   const cw=216,ch=156,x=W/2-cw/2,y=H/2-ch/2;
+   rrect(c,x,y,cw,ch,34);c.fillStyle='#0d1b2a';c.fill();c.lineWidth=6;c.strokeStyle='#35e0c9';c.stroke();
+   const lw=150,lh=lw*(lg.naturalHeight/lg.naturalWidth);c.drawImage(lg,W/2-lw/2,H/2-lh/2,lw,lh)}
+  try{cv.toBlob(b=>{if(tok===st.tok)st.blob=b},'image/jpeg',.92)}catch(e){toast('Impossible de préparer l’image')}}
+ d.querySelector('#baz').onclick=e=>{const b=e.target.closest('[data-z]');if(b){st.z=b.dataset.z;st.ia=st.ib=0;draw()}};
+ d.querySelector('#bafmt').onclick=e=>{const b=e.target.closest('[data-v]');if(b){st.fmt=b.dataset.v;lsSet('pb_bafmt',st.fmt);draw()}};
+ d.querySelector('#balay').onclick=e=>{const b=e.target.closest('[data-v]');if(b){st.lay=b.dataset.v;lsSet('pb_balay',st.lay);draw()}};
+ $('#baA').onclick=()=>{st.ia++;draw()};$('#baB').onclick=()=>{st.ib++;draw()};
+ $('#balogo').onclick=()=>{st.logo=!st.logo;lsSet('pb_balogo',st.logo?'1':'0');draw()};
+ $('#basave').onclick=async()=>{
+  if(!st.blob){toast('Image en préparation, réessaie dans une seconde');return}
+  const z=zs.find(x=>x.id===st.z);
+  const name=`avant-apres_${slug(sess.name)||'nettoyage'}_${slug(z?z.l:'plan')}.jpg`;
+  const file=new File([st.blob],name,{type:'image/jpeg'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}}
+  catch(e){if(e.name==='AbortError')return}
+  dl(st.blob,name)};
+ d.onclose=()=>{d.onclose=null;st.tok++;own.forEach(URL.revokeObjectURL)};
+ $('#cl').onclick=()=>d.close();
+ d.showModal();draw()}
+
 /* ---------- Export ---------- */
-const slug=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const slug=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 function ordered(){
- const zs=allZones();const out=[];let n=1;
- for(const ph of ['avant','apres'])for(const z of zs){
+ const out=[];let n=1;
+ for(const ph of PHASES)for(const z of zonesFor(ph)){
   const ms=media.filter(m=>m.zone===z.id&&m.phase===ph).sort((a,b)=>a.ts-b.ts);
   ms.forEach((m,i)=>out.push({m,z,ph,name:`${String(n++).padStart(3,'0')}_${ph}_${slug(z.l)}_${i+1}.${m.ext}`}))}
  return out}
 function planText(list){
- const zs=allZones();let t=`PLAN DE MONTAGE — ${sess.name} — ${new Date().toLocaleDateString('fr-FR')}\n\n`;
- t+=`Fichiers dans l'ordre logique (avant puis après).\n\n`;
- for(const l of list)t+=`${l.name} | ${l.m.type==='video'?'VIDÉO':'PHOTO'} | ${l.ph.toUpperCase()} | ${l.z.l}\n`;
- for(const ph of ['avant','apres']){
-  const missing=zs.filter(z=>!media.some(m=>m.zone===z.id&&m.phase===ph));
-  if(missing.length)t+=`\nPlans non filmés (${ph}) : ${missing.map(z=>z.l).join(', ')}\n`}
+ let t=`PLAN DE MONTAGE — ${sess.name} — ${new Date().toLocaleDateString('fr-FR')}\nPrestation : ${tpl().l}\n\n`;
+ t+=`Fichiers dans l'ordre : avant, puis pendant (plans d'action), puis après.\n`;
+ t+=`Pour un avant/après : associer chaque plan AVANT au plan APRÈS du même nom, et intercaler les plans PENDANT entre les deux.\n\n`;
+ for(const l of list)t+=`${l.name} | ${l.m.type==='video'?'VIDÉO':'PHOTO'} | ${PH[l.ph]} | ${l.z.l}\n`;
+ for(const ph of PHASES){
+  const missing=zonesFor(ph).filter(z=>!media.some(m=>m.zone===z.id&&m.phase===ph));
+  if(missing.length)t+=`\nPlans non filmés (${PH[ph].toLowerCase()}) : ${missing.map(z=>z.l).join(', ')}\n`}
  return t}
 function exportDlg(){
  const list=ordered();const d=$('#dlg');
  const size=list.reduce((a,l)=>a+l.m.blob.size,0);
  d.innerHTML=`<h3 style="margin-top:0">Export du montage</h3>
- <p style="color:var(--muted);font-size:14px">${list.length} fichier(s) · ${(size/1048576).toFixed(0)} Mo<br>Nommés dans l’ordre : <i>001_avant_porte-conducteur_1…</i> + un fichier <b>plan_montage.txt</b> à donner avec les médias pour le montage.</p>
+ <p style="color:var(--muted);font-size:14px">${list.length} fichier(s) · ${fmtSize(size)}<br>Nommés dans l’ordre : <i>001_avant_…</i>, <i>…_pendant_…</i>, <i>…_apres_…</i> + un fichier <b>plan_montage.txt</b> à donner avec les médias pour le montage.</p>
  <div style="display:grid;gap:8px">
  <button class="primary" id="sh">${ico('upload')} Enregistrer dans Photos / Fichiers (partage iOS)</button>
  <button id="zip">${ico('package')} Télécharger un ZIP</button>
