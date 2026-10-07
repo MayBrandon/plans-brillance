@@ -48,11 +48,16 @@ button:active{transform:scale(.96);filter:brightness(1.2)}
 .primary,:root[data-theme="light"] .primary{background:linear-gradient(145deg,color-mix(in srgb,var(--cyan) 90%,#fff),color-mix(in srgb,var(--cyan) 62%,transparent));color:var(--on-accent);font-weight:700;border-color:rgba(255,255,255,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.1),0 12px 28px -12px color-mix(in srgb,var(--cyan) 75%,transparent)}
 .primary:hover{border-color:rgba(255,255,255,.6)}
 svg.i{width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i48{width:1.7em;height:1.7em;stroke-width:2.5;vertical-align:-.46em}
 button svg.i{vertical-align:-.2em;margin-right:.35em}
+button svg.i48{vertical-align:-.42em;margin-right:.45em}
 button.ic-only svg.i,.fh button svg.i,header button svg.i{margin-right:0}
-.big svg.i{width:84px;height:84px;stroke:var(--cyan);stroke-width:1.3;margin:0 auto;display:block}
-.ic svg.i{width:26px;height:26px;stroke:var(--cyan)}
-.sq .em svg.i{width:46px;height:46px;stroke-width:1.5;margin:0}
+.big svg.i{width:112px;height:112px;stroke:var(--cyan);color:var(--cyan);stroke-width:1.3;margin:0 auto;display:block}
+.big svg.i48{stroke-width:1.35}
+.ic svg.i{width:32px;height:32px;stroke:var(--cyan);color:var(--cyan)}
+.ic svg.i48{stroke-width:2.2}
+.sq .em svg.i{width:64px;height:64px;stroke-width:1.5;margin:0}
+.sq .em svg.i48{stroke-width:1.7}
 .sq.a .em{color:var(--cyan)}.sq.b .em{color:var(--amber)}.sq.lock .em{color:var(--muted)}
 .sq .ck svg.i{width:22px;height:22px;margin:0}.sq.a .ck{color:var(--cyan)}.sq.b .ck{color:var(--amber)}
 .zc svg.i{vertical-align:-.25em;margin-right:.2em}
@@ -102,7 +107,7 @@ button.danger,:root[data-theme="light"] button.danger{background:linear-gradient
 .track{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .track::-webkit-scrollbar{display:none}
 .slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;padding:18px 16px 20px}
-.big{font-size:84px;line-height:1.1;text-align:center;margin-top:6px}
+.big{line-height:1;text-align:center;margin-top:6px}
 .zn{font-family:var(--font-body);font-size:1.7rem;font-weight:700;letter-spacing:-.01em;text-align:center;margin:8px 0 2px;text-transform:none;color:var(--foam)}
 .zg{text-align:center;color:var(--muted);font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
 .zc{text-align:center;font-size:14px;margin-bottom:14px}
@@ -147,19 +152,6 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 
 /* ---------- Icônes vectorielles (traits fins, couleur = couleur du texte) ---------- */
 const ICONS={
- 'car-front':'<path d="M6 11l1.6-4.2A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.3L18 11"/><rect x="3.5" y="11" width="17" height="6" rx="2"/><circle cx="7.5" cy="14" r=".9"/><circle cx="16.5" cy="14" r=".9"/><path d="M6.5 17v2M17.5 17v2"/>',
- 'car-rear':'<path d="M6 11l1.6-4.2A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.3L18 11"/><rect x="3.5" y="11" width="17" height="6" rx="2"/><path d="M5.8 14h3M15.2 14h3M10.5 14h3"/><path d="M6.5 17v2M17.5 17v2"/>',
- 'scan':'<path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3"/>',
- 'door':'<path d="M3 17v-4.5a1.5 1.5 0 0 1 1-1.4L7 10l2-3.2A1.5 1.5 0 0 1 10.3 6h3.9a1.5 1.5 0 0 1 1.2.6L18 10l2 .6a1.5 1.5 0 0 1 1 1.4v5h-2.2M9.2 17h5.6M5.2 17H3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M7 10h11M12 10v6.5M14 12.8h2"/>',
- 'door-r':'<g transform="translate(24 0) scale(-1 1)"><path d="M3 17v-4.5a1.5 1.5 0 0 1 1-1.4L7 10l2-3.2A1.5 1.5 0 0 1 10.3 6h3.9a1.5 1.5 0 0 1 1.2.6L18 10l2 .6a1.5 1.5 0 0 1 1 1.4v5h-2.2M9.2 17h5.6M5.2 17H3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M7 10h11M12 10v6.5M14 12.8h2"/></g>',
- 'seat':'<path d="M9 3.5h3.2a2 2 0 0 1 2 1.6l1.3 6.9H8.4L7.6 5.8A2 2 0 0 1 9 3.5z"/><path d="M5 12h12.5a2 2 0 0 1 2 2v1.5H5z"/><path d="M8 15.5V20M17 15.5V20"/>',
- 'mat':'<path d="M8.2 3.5h7.6L18 9.5 17 20.5H7L6 9.5z"/><path d="M9 7h6M8.6 10h6.8"/><rect x="9.5" y="14" width="5" height="4" rx="1.5"/>',
- 'bench':'<path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/><path d="M3.5 11.5a1.5 1.5 0 0 1 3 0V15h11v-3.5a1.5 1.5 0 0 1 3 0V18h-17z"/><path d="M7 18v2M17 18v2"/>',
- 'trunk':'<path d="M3.5 9L5.5 5h13l2 4"/><rect x="3" y="9" width="18" height="10" rx="2"/><path d="M9.5 13h5"/>',
- 'gauge':'<path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13.2l3.6-4.2"/><circle cx="12" cy="13.5" r="1"/><path d="M5 17h14"/>',
- 'steering':'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><path d="M3.5 12H10M14 12h6.5M12 14v6.5"/>',
- 'shifter':'<rect x="5" y="14" width="14" height="6" rx="2"/><path d="M12 14V8"/><circle cx="12" cy="6" r="2"/>',
- 'roof':'<rect x="4" y="5" width="16" height="14" rx="3"/><rect x="8" y="9" width="8" height="6" rx="1.5"/>',
  'search':'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
  'sponge':'<rect x="4" y="9" width="16" height="9.5" rx="2.5"/><circle cx="8" cy="15" r=".7"/><circle cx="12.5" cy="12.8" r=".7"/><circle cx="16" cy="15.6" r=".7"/><circle cx="8" cy="5.5" r="1.2"/><circle cx="13.5" cy="4.5" r="1.6"/>',
  'sparkles':'<path d="M11 3.5l1.8 5.2L18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
@@ -192,31 +184,66 @@ const ICONS={
  'tire':'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
  'basket':'<path d="M4 9h16l-1.5 10a1.5 1.5 0 0 1-1.5 1.3H7A1.5 1.5 0 0 1 5.5 19z"/><path d="M8 9l3-5M16 9l-3-5"/>'
 };
-function ico(n,c=''){const q=ICONS[n]||ICONS.star;return `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${q}</svg>`}
-const ICON_CHOICES=['star','search','sponge','drop','sparkles','wrench','bottle','wind','window','tire','box','basket','camera'].map(x=>x==='box'?'package':x);
+/* Icônes automobiles (grille 48, dessinées pour l'app) */
+const ICONS48={
+ 'car-front':'<path d="M12 22.5L15.5 13Q16.6 10 19.6 10H28.4Q31.4 10 32.5 13L36 22.5"/><path d="M10 22.5H38Q42 22.5 42 27V33Q42 35.5 39.5 35.5H8.5Q6 35.5 6 33V27Q6 22.5 10 22.5Z"/><path d="M9 35.5V39Q9 40.5 10.5 40.5H13.5Q15 40.5 15 39V35.5M33 35.5V39Q33 40.5 34.5 40.5H37.5Q39 40.5 39 39V35.5"/><path d="M16.2 20.5L18 15Q18.5 13.4 20.2 13.4H27.8Q29.5 13.4 30 15L31.8 20.5Z"/><path d="M12.8 19.2H9.6M35.2 19.2H38.4"/><rect x="9.2" y="26" width="7" height="3.8" rx="1.9"/><rect x="31.8" y="26" width="7" height="3.8" rx="1.9"/><path d="M20 26.6H28M21 30.2H27"/>',
+ 'car-rear':'<path d="M12 22.5L15.5 13Q16.6 10 19.6 10H28.4Q31.4 10 32.5 13L36 22.5"/><path d="M10 22.5H38Q42 22.5 42 27V33Q42 35.5 39.5 35.5H8.5Q6 35.5 6 33V27Q6 22.5 10 22.5Z"/><path d="M9 35.5V39Q9 40.5 10.5 40.5H13.5Q15 40.5 15 39V35.5M33 35.5V39Q33 40.5 34.5 40.5H37.5Q39 40.5 39 39V35.5"/><path d="M17.2 19.5L18.6 15.2Q19 13.8 20.5 13.8H27.5Q29 13.8 29.4 15.2L30.8 19.5Z"/><path d="M8.6 26.2H15V28.8H8.6ZM33 26.2H39.4V28.8H33Z" fill="currentColor" fill-opacity=".3"/><rect x="19.5" y="27.5" width="9" height="4.2" rx="1"/><path d="M6.4 32H16M32 32H41.6"/>',
+ 'car-dirty':'<path d="M12 22.5L15.5 13Q16.6 10 19.6 10H28.4Q31.4 10 32.5 13L36 22.5"/><path d="M10 22.5H38Q42 22.5 42 27V33Q42 35.5 39.5 35.5H8.5Q6 35.5 6 33V27Q6 22.5 10 22.5Z"/><path d="M9 35.5V39Q9 40.5 10.5 40.5H13.5Q15 40.5 15 39V35.5M33 35.5V39Q33 40.5 34.5 40.5H37.5Q39 40.5 39 39V35.5"/><path d="M16.2 20.5L18 15Q18.5 13.4 20.2 13.4H27.8Q29.5 13.4 30 15L31.8 20.5Z"/><path d="M12.8 19.2H9.6M35.2 19.2H38.4"/><rect x="9.2" y="26" width="7" height="3.8" rx="1.9"/><rect x="31.8" y="26" width="7" height="3.8" rx="1.9"/><path d="M20 26.6H28M21 30.2H27"/><g fill="currentColor" stroke="none"><circle cx="9" cy="12" r="1.8"/><circle cx="5.2" cy="17" r="1.1"/><circle cx="39.5" cy="11" r="1.4"/><circle cx="43" cy="16.5" r="1.9"/><circle cx="24" cy="5" r="1.2"/><circle cx="14" cy="6.5" r="1"/><circle cx="34.5" cy="5.5" r="1.1"/><circle cx="24" cy="23.9" r="0"/></g><path d="M12 32.4H14.5M33.5 32.4H36" stroke-dasharray="0 2.4"/>',
+ 'car-clean':'<path d="M12 22.5L15.5 13Q16.6 10 19.6 10H28.4Q31.4 10 32.5 13L36 22.5"/><path d="M10 22.5H38Q42 22.5 42 27V33Q42 35.5 39.5 35.5H8.5Q6 35.5 6 33V27Q6 22.5 10 22.5Z"/><path d="M9 35.5V39Q9 40.5 10.5 40.5H13.5Q15 40.5 15 39V35.5M33 35.5V39Q33 40.5 34.5 40.5H37.5Q39 40.5 39 39V35.5"/><path d="M16.2 20.5L18 15Q18.5 13.4 20.2 13.4H27.8Q29.5 13.4 30 15L31.8 20.5Z"/><path d="M12.8 19.2H9.6M35.2 19.2H38.4"/><rect x="9.2" y="26" width="7" height="3.8" rx="1.9"/><rect x="31.8" y="26" width="7" height="3.8" rx="1.9"/><path d="M20 26.6H28M21 30.2H27"/><path d="M40.5 3.5Q40.5 8.5 45.5 8.5Q40.5 8.5 40.5 13.5Q40.5 8.5 35.5 8.5Q40.5 8.5 40.5 3.5Z" fill="currentColor" fill-opacity=".35"/><path d="M7.5 7.1Q7.5 10.5 10.9 10.5Q7.5 10.5 7.5 13.9Q7.5 10.5 4.1 10.5Q7.5 10.5 7.5 7.1Z" fill="currentColor" fill-opacity=".35"/><path d="M44 17.8Q44 20 46.2 20Q44 20 44 22.2Q44 20 41.8 20Q44 20 44 17.8Z" fill="currentColor" fill-opacity=".35"/>',
+ 'car-side':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/>',
+ 'door-fl':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z" fill="currentColor" fill-opacity=".3"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/>',
+ 'door-rl':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z" fill="currentColor" fill-opacity=".3"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/>',
+ 'door-fr':'<g transform="translate(48 0) scale(-1 1)"><path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z" fill="currentColor" fill-opacity=".3"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/></g>',
+ 'door-rr':'<g transform="translate(48 0) scale(-1 1)"><path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z" fill="currentColor" fill-opacity=".3"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/></g>',
+ 'seat-driver':'<rect x="29.6" y="3.4" width="8.4" height="7" rx="3" transform="rotate(8 33.8 6.9)" fill="currentColor" fill-opacity=".3"/><path d="M31.6 10.6L31.4 12.1M35.6 11.1L35.5 12.6"/><path d="M27.2 14.4Q28 11.8 30.8 12L35.6 12.6Q38.6 13 38.3 16L36.3 35Q35.8 39.5 31.3 39.5H12Q7.5 39.5 7.5 35.6Q7.5 31.5 12 31.5H20.5Q23 31.5 23.5 29Z"/><path d="M27.6 30L30.4 16.2M12 35.5H30.5"/><path d="M13 39.5V43.2M31 39.5V43.2M9 43.6H35"/><ellipse cx="10" cy="19" rx="1.8" ry="6.6" transform="rotate(-20 10 19)"/><path d="M8.6 21.2L3 25.4"/>',
+ 'seat-pass':'<g transform="translate(48 0) scale(-1 1)"><rect x="29.6" y="3.4" width="8.4" height="7" rx="3" transform="rotate(8 33.8 6.9)" fill="currentColor" fill-opacity=".3"/><path d="M31.6 10.6L31.4 12.1M35.6 11.1L35.5 12.6"/><path d="M27.2 14.4Q28 11.8 30.8 12L35.6 12.6Q38.6 13 38.3 16L36.3 35Q35.8 39.5 31.3 39.5H12Q7.5 39.5 7.5 35.6Q7.5 31.5 12 31.5H20.5Q23 31.5 23.5 29Z"/><path d="M27.6 30L30.4 16.2M12 35.5H30.5"/><path d="M13 39.5V43.2M31 39.5V43.2M9 43.6H35"/></g>',
+ 'floor-driver':'<path d="M14.2 4V8M24.2 4V8M33.5 3V5"/><rect x="11" y="8" width="6.5" height="5.5" rx="1.8" fill="currentColor" fill-opacity=".3"/><rect x="20.5" y="8" width="7.5" height="5.5" rx="1.8" fill="currentColor" fill-opacity=".3"/><rect x="31" y="5" width="5" height="10" rx="2" fill="currentColor" fill-opacity=".3"/><path d="M14 19.5H34Q37 19.5 37.5 22.5L39.6 39.5Q40 43.5 36 43.5H12Q8 43.5 8.4 39.5L10.5 22.5Q11 19.5 14 19.5Z"/><path d="M14.8 25H33.2L34.6 38.5H13.4Z"/><path d="M19.2 25L18.4 38.5M24 25V38.5M28.8 25L29.6 38.5"/>',
+ 'floor-pass':'<path d="M14 5H34Q37 5 37.5 8L40.6 38Q41 43 36.5 43H11.5Q7 43 7.4 38L10.5 8Q11 5 14 5Z"/><path d="M15 11H33L35.4 37H12.6Z"/><path d="M19.6 11L18.4 37M24 11V37M28.4 11L29.6 37"/>',
+ 'floor-rl':'<path d="M9 11H36Q39 11 39 14V21Q39 23 37 23.3Q35 23.7 35 26V34Q35 37 32 37H9Q6 37 6 34V14Q6 11 9 11Z"/><rect x="10.5" y="15.5" width="20" height="17" rx="2"/><path d="M15.5 15.5V32.5M20.5 15.5V32.5M25.5 15.5V32.5"/>',
+ 'floor-rr':'<g transform="translate(48 0) scale(-1 1)"><path d="M9 11H36Q39 11 39 14V21Q39 23 37 23.3Q35 23.7 35 26V34Q35 37 32 37H9Q6 37 6 34V14Q6 11 9 11Z"/><rect x="10.5" y="15.5" width="20" height="17" rx="2"/><path d="M15.5 15.5V32.5M20.5 15.5V32.5M25.5 15.5V32.5"/></g>',
+ 'bench':'<rect x="8.5" y="5.5" width="8" height="5.6" rx="2.2"/><rect x="20" y="5.5" width="8" height="5.6" rx="2.2"/><rect x="31.5" y="5.5" width="8" height="5.6" rx="2.2"/><path d="M12.5 11.1V14M24 11.1V14M35.5 11.1V14"/><path d="M6 30V17Q6 14 9 14H39Q42 14 42 17V30"/><path d="M18 14V30M30 14V30"/><rect x="4" y="30" width="40" height="9.5" rx="3.5"/><path d="M18 30V39.5M30 30V39.5"/>',
+ 'trunk':'<path d="M13.6 12.4L11.4 5.4Q10.8 3.4 12.9 3.4H35.1Q37.2 3.4 36.6 5.4L34.4 12.4Z"/><path d="M16.8 9.6L15.6 6.2H32.4L31.2 9.6Z"/><path d="M13.6 12.4L12.6 17.5M34.4 12.4L35.4 17.5"/><path d="M10.4 24.5L12.4 17.5H35.6L37.6 24.5"/><path d="M14.4 24.5L15.8 20H32.2L33.6 24.5Z" fill="currentColor" fill-opacity=".3"/><path d="M9.5 24.5H38.5Q42 24.5 42 28V33Q42 35.5 39.5 35.5H8.5Q6 35.5 6 33V28Q6 24.5 9.5 24.5Z"/><path d="M8.6 27.8H14V30.2H8.6ZM34 27.8H39.4V30.2H34Z" fill="currentColor" fill-opacity=".3"/><rect x="20" y="28.2" width="8" height="3.6" rx="1"/><path d="M9 35.5V39Q9 40.5 10.5 40.5H13.5Q15 40.5 15 39V35.5M33 35.5V39Q33 40.5 34.5 40.5H37.5Q39 40.5 39 39V35.5"/>',
+ 'dash':'<path d="M4 35V19.5Q4 13 10.5 13H37.5Q44 13 44 19.5V35"/><circle cx="15" cy="27" r="7.5"/><circle cx="15" cy="27" r="2.1"/><path d="M7.6 26.3H12.9M17.1 26.3H22.4M15 29.1V34.4"/><path d="M9.5 17.3Q15 14.8 20.5 17.3"/><rect x="27" y="17" width="12" height="8" rx="1.8" fill="currentColor" fill-opacity=".3"/><circle cx="29.6" cy="30" r="1.7"/><circle cx="36.4" cy="30" r="1.7"/>',
+ 'steering':'<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="13.6"/><path d="M19.5 20.8Q24 18.6 28.5 20.8L30 24.5Q29.4 28.8 24 29.6Q18.6 28.8 18 24.5Z" fill="currentColor" fill-opacity=".3"/><path d="M10.5 22.6L18.6 22.2M37.5 22.6L29.4 22.2M24 29.6V37.5"/>',
+ 'shifter':'<rect x="18.5" y="4" width="11" height="10" rx="4.5" fill="currentColor" fill-opacity=".3"/><path d="M24 14V21"/><path d="M16.5 34L21 21H27L31.5 34Z"/><path d="M19.7 25.5H28.3M18.2 30H29.8"/><rect x="9" y="34" width="30" height="8" rx="3.5"/>',
+ 'roof':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M18.2 19.4L21.2 16.2H31.4L35 19.4" stroke-width="4.2"/><path d="M26 28V22.5M23.4 25L26 22.4L28.6 25"/>',
+ 'vent':'<rect x="5" y="11" width="38" height="26" rx="6"/><path d="M11 18H37M11 24H19.5M28.5 24H37M11 30H37"/><rect x="20.5" y="21" width="7" height="6" rx="2" fill="currentColor" fill-opacity=".3"/>',
+ 'car-top':'<path d="M17 3H31Q37 3 37 9.5V38.5Q37 45 31 45H17Q11 45 11 38.5V9.5Q11 3 17 3Z"/><path d="M11 17.6L7.4 16.4M37 17.6L40.6 16.4"/><path d="M14 16.4Q24 12 34 16.4L32.8 19.4Q24 16.8 15.2 19.4Z"/><path d="M15 40Q24 42.6 33 40"/><rect x="14.6" y="21.4" width="8" height="7.4" rx="2.4" fill="currentColor" fill-opacity=".3"/><rect x="25.4" y="21.4" width="8" height="7.4" rx="2.4" fill="currentColor" fill-opacity=".3"/><rect x="14.6" y="31" width="18.8" height="6" rx="2.4" fill="currentColor" fill-opacity=".3"/>',
+ 'wheel':'<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="12.5"/><circle cx="24" cy="24" r="3" fill="currentColor" fill-opacity=".3"/><path d="M24 21V11.5M26.85 23.07L35.9 20.1M25.76 26.43L31.35 34.1M22.24 26.43L16.65 34.1M21.15 23.07L12.1 20.1"/>',
+ 'spray':'<path d="M15 22H27Q30 22 30 25V40Q30 43 27 43H15Q12 43 12 40V25Q12 22 15 22Z"/><path d="M17 22V17H25V22"/><path d="M15 17V11Q15 9 17 9H28L32.5 11.5V14H27V17Z" fill="currentColor" fill-opacity=".3"/><path d="M26.5 17Q27 20.5 30 21.5"/><path d="M37 8.5L40 7M37.5 12.5H41M37 16.5L40 18"/>',
+ 'vacuum':'<rect x="5" y="24" width="19" height="14" rx="4.5" fill="currentColor" fill-opacity=".3"/><circle cx="10" cy="40.5" r="2.2"/><circle cx="19" cy="40.5" r="2.2"/><path d="M14.5 24V14Q14.5 6 22.5 6Q30.5 6 30.5 14V33"/><path d="M25.5 42L28 33H33L35.5 42Z"/>',
+ 'sponge':'<rect x="6" y="21" width="36" height="20" rx="6.5" fill="currentColor" fill-opacity=".3"/><circle cx="14.5" cy="28" r="1.4"/><circle cx="23" cy="33.5" r="1.4"/><circle cx="31" cy="27.5" r="1.4"/><circle cx="36" cy="35" r="1.1"/><circle cx="14" cy="12" r="3.2"/><circle cx="25" cy="8.5" r="4.6"/><circle cx="35" cy="14" r="2.4"/>',
+ 'cloth':'<path d="M8 13Q16 9 24 12T40 11V35Q32 39 24 36T8 37Z" fill="currentColor" fill-opacity=".3"/><path d="M12.5 18Q18 16 24 17.6T35.5 17M12.5 30.6Q18 28.6 24 30.2T35.5 29.6" stroke-dasharray="2 3"/>',
+ 'headlight':'<path d="M27 9C37 9.5 43 16 43 24C43 32 37 38.5 27 39C22.5 34.5 22.5 13.5 27 9Z" fill="currentColor" fill-opacity=".3"/><path d="M5 13.5H17.5M5 20.5H16M5 27.5H16M5 34.5H17.5"/>',
+ 'key':'<circle cx="13.5" cy="24" r="8" fill="currentColor" fill-opacity=".3"/><circle cx="11.5" cy="24" r="2"/><path d="M21.5 24H43M36 24V30.5M41.5 24V29"/>',
+ 'paw':'<path d="M24 23C19 23 13.5 29 13.5 34.5C13.5 39 18 40 24 38C30 40 34.5 39 34.5 34.5C34.5 29 29 23 24 23Z" fill="currentColor" fill-opacity=".3"/><ellipse cx="10.5" cy="20.5" rx="3.2" ry="4.2"/><ellipse cx="19" cy="12" rx="3.2" ry="4.4"/><ellipse cx="29" cy="12" rx="3.2" ry="4.4"/><ellipse cx="37.5" cy="20.5" rx="3.2" ry="4.2"/>',
+ 'stain':'<path d="M24 8C30 8 30 14 36 15C42 16 42 24 38 27C34 30 38 36 32 39C26 42 24 36 18 38C12 40 8 34 12 29C15 25 8 22 11 16C14 10 19 14 24 8Z" fill="currentColor" fill-opacity=".3"/><circle cx="41" cy="38" r="2.2"/><circle cx="7.5" cy="41" r="1.6"/>'
+};
+function ico(n,c=''){if(ICONS48[n])return `<svg class="i i48 ${c}" viewBox="0 0 48 48" aria-hidden="true">${ICONS48[n]}</svg>`;const q=ICONS[n]||ICONS.star;return `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${q}</svg>`}
+const ICON_CHOICES=['star','search','wheel','spray','vacuum','sponge','drop','sparkles','headlight','key','paw','stain'];
 
 /* ---------- Plans par défaut (dans l'ordre du parcours) ---------- */
 const DEFAULT_ZONES=[
  {g:'Vue d’ensemble',id:'ext-av',l:'Extérieur avant',e:'car-front'},
  {g:'Vue d’ensemble',id:'ext-ar',l:'Extérieur arrière',e:'car-rear'},
- {g:'Vue d’ensemble',id:'int-large',l:'Intérieur plan large',e:'scan'},
- {g:'Côté conducteur',id:'cd-porte',l:'Porte conducteur',e:'door'},
- {g:'Côté conducteur',id:'cd-siege',l:'Siège conducteur',e:'seat'},
- {g:'Côté conducteur',id:'cd-sol',l:'Sol conducteur',e:'mat'},
- {g:'Côté passager',id:'cp-porte',l:'Porte passager',e:'door-r'},
- {g:'Côté passager',id:'cp-siege',l:'Siège passager',e:'seat'},
- {g:'Côté passager',id:'cp-sol',l:'Sol passager',e:'mat'},
- {g:'Arrière',id:'ar-g-porte',l:'Porte arrière gauche',e:'door'},
- {g:'Arrière',id:'ar-g-sol',l:'Sol arrière gauche',e:'mat'},
+ {g:'Vue d’ensemble',id:'int-large',l:'Intérieur plan large',e:'car-top'},
+ {g:'Côté conducteur',id:'cd-porte',l:'Porte conducteur',e:'door-fl'},
+ {g:'Côté conducteur',id:'cd-siege',l:'Siège conducteur',e:'seat-driver'},
+ {g:'Côté conducteur',id:'cd-sol',l:'Sol conducteur',e:'floor-driver'},
+ {g:'Côté passager',id:'cp-porte',l:'Porte passager',e:'door-fr'},
+ {g:'Côté passager',id:'cp-siege',l:'Siège passager',e:'seat-pass'},
+ {g:'Côté passager',id:'cp-sol',l:'Sol passager',e:'floor-pass'},
+ {g:'Arrière',id:'ar-g-porte',l:'Porte arrière gauche',e:'door-rl'},
+ {g:'Arrière',id:'ar-g-sol',l:'Sol arrière gauche',e:'floor-rl'},
  {g:'Arrière',id:'banquette',l:'Banquette arrière',e:'bench'},
- {g:'Arrière',id:'ar-d-porte',l:'Porte arrière droite',e:'door-r'},
- {g:'Arrière',id:'ar-d-sol',l:'Sol arrière droit',e:'mat'},
+ {g:'Arrière',id:'ar-d-porte',l:'Porte arrière droite',e:'door-rr'},
+ {g:'Arrière',id:'ar-d-sol',l:'Sol arrière droit',e:'floor-rr'},
  {g:'Coffre',id:'coffre',l:'Coffre',e:'trunk'},
- {g:'Poste de conduite',id:'tdb',l:'Tableau de bord',e:'gauge'},
+ {g:'Poste de conduite',id:'tdb',l:'Tableau de bord',e:'dash'},
  {g:'Poste de conduite',id:'volant',l:'Volant',e:'steering'},
  {g:'Poste de conduite',id:'console',l:'Console centrale',e:'shifter'},
  {g:'Poste de conduite',id:'ciel',l:'Ciel de toit',e:'roof'},
- {g:'Poste de conduite',id:'aeration',l:'Aérations / détails',e:'search'},
+ {g:'Poste de conduite',id:'aeration',l:'Aérations / détails',e:'vent'},
 ];
 
 
@@ -286,7 +313,7 @@ async function home(){
  if(!list.length)h+=`<div class="hint">Aucun nettoyage pour l’instant. Crée-en un avant de commencer le véhicule.</div>`;
  for(const s of list){
   const ms=await getMedia(s.id);
-  h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico('car-front')}</div><div class="sp"><b>${esc(s.name)}</b><small>${new Date(s.ts).toLocaleDateString('fr-FR')} · ${ms.length} fichier(s)</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
+  h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico('car-side')}</div><div class="sp"><b>${esc(s.name)}</b><small>${new Date(s.ts).toLocaleDateString('fr-FR')} · ${ms.length} fichier(s)</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
  h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
  <div class="hint">Ajoute l’app à l’écran d’accueil (Partager → Sur l’écran d’accueil) pour l’ouvrir comme une vraie app.</div>`;
  $('#app').innerHTML=h;
@@ -312,8 +339,8 @@ function hub(){
  const unlocked=sess.avantDone;
  let h=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><h1 class="sp" style="font-size:17px">${esc(sess.name)}</h1><button id="ren" class="ic-only" aria-label="Renommer">${ico('edit')}</button></div></header>
  <div class="hub">
-  <button class="sq a" id="sqA">${sess.avantDone?'<span class="ck">'+ico('check-circle')+'</span>':''}<span class="em">${ico('sponge')}</span><span class="step">Étape 1</span><strong>AVANT</strong><small>${a}/${n} plans</small></button>
-  <button class="sq b ${unlocked?'':'lock'}" id="sqB">${sess.apresDone?'<span class="ck">'+ico('check-circle')+'</span>':''}${unlocked?'':'<span class="ck">'+ico('lock')+'</span>'}<span class="em">${ico('sparkles')}</span><span class="step">Étape 2</span><strong>APRÈS</strong><small>${unlocked?`${b}/${n} plans`:'Termine l’avant d’abord'}</small></button>
+  <button class="sq a" id="sqA">${sess.avantDone?'<span class="ck">'+ico('check-circle')+'</span>':''}<span class="em">${ico('car-dirty')}</span><span class="step">Étape 1</span><strong>AVANT</strong><small>${a}/${n} plans</small></button>
+  <button class="sq b ${unlocked?'':'lock'}" id="sqB">${sess.apresDone?'<span class="ck">'+ico('check-circle')+'</span>':''}${unlocked?'':'<span class="ck">'+ico('lock')+'</span>'}<span class="em">${ico('car-clean')}</span><span class="step">Étape 2</span><strong>APRÈS</strong><small>${unlocked?`${b}/${n} plans`:'Termine l’avant d’abord'}</small></button>
  </div>
  <div class="hint" style="text-align:center">Touche <b>AVANT</b> avant de commencer le nettoyage, puis <b>APRÈS</b> quand c’est fini. Ensuite, swipe de plan en plan.</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;

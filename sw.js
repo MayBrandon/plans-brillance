@@ -1,4 +1,4 @@
-const C = 'plans-brillance-v3';
+const C = 'plans-brillance-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './images/logo-ab.png', './images/apple-touch-icon.png', './images/favicon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
