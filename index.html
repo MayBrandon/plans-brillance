@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plans Brillance">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<script>try{if(localStorage.getItem('abs_theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<title>Plans Brillance</title>
+<style>
+:root{--ink:#0b0f14;--panel:#11171f;--panel2:#161d27;--line:#232b34;--foam:#eef3f6;--muted:#9aa7b2;--cyan:#35e0c9;--amber:#ffb84a;--on-accent:#06110f;--red:#ff6b6b;--radius:16px;
+--font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root[data-theme="light"]{--ink:#f5f8fa;--panel:#ffffff;--panel2:#eef3f6;--line:#d9e1e7;--foam:#0f1720;--muted:#566472;--cyan:#087a6d;--amber:#b26a00;--on-accent:#ffffff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--ink);color:var(--foam);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+body{padding:env(safe-area-inset-top) 0 calc(30px + env(safe-area-inset-bottom));min-height:100vh}
+body::before,body::after{content:"";position:fixed;border-radius:50%;pointer-events:none;z-index:0;width:760px;height:760px}
+body::before{background:radial-gradient(closest-side,var(--cyan),transparent);opacity:.14;top:-280px;left:-280px}
+body::after{background:radial-gradient(closest-side,var(--amber),transparent);opacity:.10;bottom:-320px;right:-280px}
+:root[data-theme="light"] body::before,:root[data-theme="light"] body::after{opacity:.07}
+#app{position:relative;z-index:1}
+::selection{background:color-mix(in srgb,var(--cyan) 35%,transparent)}
+header{position:sticky;top:0;z-index:5;background:var(--ink);background:color-mix(in srgb,var(--ink) 94%,transparent);backdrop-filter:blur(10px);padding:10px 16px;border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-mark{flex-shrink:0;width:56px;height:40px;border-radius:10px;display:grid;place-items:center;background:#0d1b2a;border:1px solid color-mix(in srgb,var(--cyan) 55%,transparent)}
+.logo-mark img{width:42px;height:auto;display:block}
+.logo-text{font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.logo-text span{color:var(--cyan)}
+.theme-toggle{width:40px;height:40px;padding:0;border-radius:10px;font-size:1rem}
+h1{font-size:20px;margin:0}
+h2{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);margin:24px 16px 8px;font-weight:500}
+button{font:inherit;color:var(--foam);border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel);cursor:pointer;transition:transform .15s ease,filter .15s ease,border-color .15s ease,color .15s ease}
+button:hover{border-color:var(--cyan)}
+button:active{transform:scale(.97)}
+.primary{background:var(--cyan);color:var(--on-accent);font-weight:700;border-color:transparent}
+.primary:hover{filter:brightness(1.08);border-color:transparent}
+.row{display:flex;gap:8px;align-items:center}
+.sp{flex:1}
+.wrap{padding:0 16px}
+.intro{text-align:center;max-width:640px;margin:0 auto;padding:30px 20px 6px}
+.eyebrow{display:inline-block;font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);margin-bottom:12px}
+.intro h1{font-size:clamp(1.8rem,7vw,2.4rem);line-height:1.15;letter-spacing:-.02em;margin:0 0 12px}
+.intro h1 span{color:var(--cyan)}
+.intro p{color:var(--muted);margin:0;font-size:1rem}
+.sess{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:10px 16px;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.sess:hover{transform:translateY(-3px);border-color:var(--cyan);background:var(--panel2)}
+.sess b{display:block}.sess small{color:var(--muted)}
+.ic{font-size:30px;width:44px;height:44px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--cyan);width:0;transition:width .3s}
+.hint{color:var(--muted);font-size:13px;margin:8px 16px;line-height:1.45}
+.hub{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:22px 16px 6px}
+.sq{aspect-ratio:1;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;text-align:center;position:relative;border:1px solid var(--line);background:var(--panel);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.sq:hover{transform:translateY(-6px)}
+.sq .em{font-size:42px;line-height:1}
+.sq .step{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+.sq strong{font-size:1.5rem;letter-spacing:.04em;line-height:1.1}
+.sq small{font-size:.8rem;color:var(--muted);font-weight:500}
+.sq .ck{position:absolute;top:10px;right:12px;font-size:20px}
+.sq.a{border-color:color-mix(in srgb,var(--cyan) 55%,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--cyan) 12%,var(--panel)),var(--panel))}
+.sq.a .step{color:var(--cyan)}
+.sq.a:hover{box-shadow:0 14px 34px -16px color-mix(in srgb,var(--cyan) 55%,transparent)}
+.sq.b{border-color:color-mix(in srgb,var(--amber) 55%,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--amber) 12%,var(--panel)),var(--panel))}
+.sq.b .step{color:var(--amber)}
+.sq.b:hover{box-shadow:0 14px 34px -16px color-mix(in srgb,var(--amber) 55%,transparent)}
+.sq.lock{background:var(--panel);border-color:var(--line);filter:grayscale(1);opacity:.5}
+.sq.lock .step{color:var(--muted)}
+.sq.lock:hover{transform:none;box-shadow:none}
+.flow{position:fixed;inset:0;z-index:4;background:radial-gradient(closest-side at 0 0,color-mix(in srgb,var(--cyan) 14%,transparent),transparent 70%),var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.fh{padding:10px 16px 10px;border-bottom:1px solid var(--line)}
+.fh .t{text-align:center;line-height:1.25}
+.fh .t small{display:block;color:var(--cyan);font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+.fh .t b{font-size:17px}
+.track{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;padding:18px 16px 20px}
+.big{font-size:84px;line-height:1.1;text-align:center;margin-top:6px}
+.zn{font-family:var(--font-body);font-size:1.7rem;font-weight:700;letter-spacing:-.01em;text-align:center;margin:8px 0 2px;text-transform:none;color:var(--foam)}
+.zg{text-align:center;color:var(--muted);font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
+.zc{text-align:center;font-size:14px;margin-bottom:14px}
+.zc.ok{color:var(--cyan)}.zc.no{color:var(--muted)}
+.acts2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts2 button{padding:20px 6px;font-size:17px;border-radius:14px}
+.wide{width:100%;margin-top:10px;padding:14px}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.tg>div{position:relative}
+.tg img,.tg video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:#000;display:block;border:1px solid var(--line)}
+.tg .x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.75);color:#fff;padding:4px 8px;border-radius:8px;font-size:12px;border:0}
+.tg .pl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;pointer-events:none}
+.fn{display:flex;gap:10px;padding:10px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--ink);background:color-mix(in srgb,var(--ink) 96%,transparent)}
+.fn button{flex:1;padding:16px;font-weight:600}
+.fn button[disabled]{opacity:.3}
+.miss{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+.miss button{padding:8px 12px;font-size:14px}
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--foam);width:min(92vw,520px);padding:16px;max-height:86vh}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog img,dialog video{width:100%;border-radius:12px;max-height:60vh;object-fit:contain;background:#000}
+dialog h3{margin-top:0}
+.lst button{display:flex;width:100%;gap:10px;align-items:center;text-align:left;margin-bottom:6px;padding:10px 12px}
+.lst .d{margin-left:auto}
+input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--foam);font:inherit;margin:6px 0}
+input[type=text]:focus{outline:2px solid var(--cyan);outline-offset:1px}
+button.danger{background:var(--red);color:#06110f;font-weight:700;border-color:transparent}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+#toast{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--cyan);color:var(--foam);padding:10px 16px;border-radius:20px;z-index:50;display:none;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app"></div>
+
+<input type="file" id="inPhoto" accept="image/*" capture="environment" hidden>
+<input type="file" id="inVideo" accept="video/*" capture="environment" hidden>
+<input type="file" id="inImport" accept="image/*,video/*" multiple hidden>
+
+<dialog id="dlg"></dialog>
+
+<script>
+/* ---------- Plans par défaut (dans l'ordre du parcours) ---------- */
+const DEFAULT_ZONES=[
+ {g:'Vue d’ensemble',id:'ext-av',l:'Extérieur avant',e:'🚗'},
+ {g:'Vue d’ensemble',id:'ext-ar',l:'Extérieur arrière',e:'🚙'},
+ {g:'Vue d’ensemble',id:'int-large',l:'Intérieur plan large',e:'🪟'},
+ {g:'Côté conducteur',id:'cd-porte',l:'Porte conducteur',e:'🚪'},
+ {g:'Côté conducteur',id:'cd-siege',l:'Siège conducteur',e:'💺'},
+ {g:'Côté conducteur',id:'cd-sol',l:'Sol conducteur',e:'🟫'},
+ {g:'Côté passager',id:'cp-porte',l:'Porte passager',e:'🚪'},
+ {g:'Côté passager',id:'cp-siege',l:'Siège passager',e:'💺'},
+ {g:'Côté passager',id:'cp-sol',l:'Sol passager',e:'🟫'},
+ {g:'Arrière',id:'ar-g-porte',l:'Porte arrière gauche',e:'🚪'},
+ {g:'Arrière',id:'ar-g-sol',l:'Sol arrière gauche',e:'🟫'},
+ {g:'Arrière',id:'banquette',l:'Banquette arrière',e:'🛋️'},
+ {g:'Arrière',id:'ar-d-porte',l:'Porte arrière droite',e:'🚪'},
+ {g:'Arrière',id:'ar-d-sol',l:'Sol arrière droit',e:'🟫'},
+ {g:'Coffre',id:'coffre',l:'Coffre',e:'📦'},
+ {g:'Poste de conduite',id:'tdb',l:'Tableau de bord',e:'🎛️'},
+ {g:'Poste de conduite',id:'volant',l:'Volant',e:'🛞'},
+ {g:'Poste de conduite',id:'console',l:'Console centrale',e:'🔘'},
+ {g:'Poste de conduite',id:'ciel',l:'Ciel de toit',e:'☁️'},
+ {g:'Poste de conduite',id:'aeration',l:'Aérations / détails',e:'🔍'},
+];
+const EMOJIS=['⭐','🔍','🧽','🧼','✨','🔧','🧴','💨','🚿','🪟','🛞','📦','🧺'];
+
+/* ---------- IndexedDB ---------- */
+let db;
+function openDB(){return new Promise((res,rej)=>{
+ const r=indexedDB.open('plans-brillance',1);
+ r.onupgradeneeded=()=>{const d=r.result;
+  d.createObjectStore('sessions',{keyPath:'id'});
+  const m=d.createObjectStore('media',{keyPath:'id'});m.createIndex('sid','sid');};
+ r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)})}
+const tx=(s,mode='readonly')=>db.transaction(s,mode).objectStore(s);
+const p=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const getSessions=()=>p(tx('sessions').getAll());
+const putSession=s=>p(tx('sessions','readwrite').put(s));
+const getMedia=sid=>p(tx('media').index('sid').getAll(sid));
+const putMedia=m=>p(tx('media','readwrite').put(m));
+const delMedia=id=>p(tx('media','readwrite').delete(id));
+async function delSession(id){const ms=await getMedia(id);for(const m of ms)await delMedia(m.id);await p(tx('sessions','readwrite').delete(id))}
+
+/* ---------- État ---------- */
+const $=s=>document.querySelector(s);
+let sess=null, media=[], phase='avant', cur=null, urls=[], idx=0;
+const PH={avant:'AVANT',apres:'APRÈS'};
+const customZones=()=>JSON.parse(localStorage.getItem('zonesPerso')||'[]');
+const allZones=()=>[...DEFAULT_ZONES,...customZones().map(z=>({...z,g:'Mes plans libres'}))];
+function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',2400)}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ---------- Boîtes de dialogue intégrées (pas d'alertes du navigateur) ---------- */
+function askText(title,ph,val=''){return new Promise(res=>{
+ const d=$('#dlg');
+ d.innerHTML=`<h3>${esc(title)}</h3><input type="text" id="aq" maxlength="80" placeholder="${esc(ph)}" value="${esc(val)}"><div class="row" style="margin-top:14px"><button class="sp" id="ac">Annuler</button><button class="sp primary" id="aok">OK</button></div>`;
+ let out=null;
+ d.onclose=()=>{d.onclose=null;res(out)};
+ $('#ac').onclick=()=>d.close();
+ $('#aok').onclick=()=>{out=$('#aq').value.trim()||null;d.close()};
+ $('#aq').onkeydown=e=>{if(e.key==='Enter')$('#aok').click()};
+ d.showModal();setTimeout(()=>{const i=$('#aq');if(i)i.focus()},50)})}
+function askConfirm(msg,label='Supprimer'){return new Promise(res=>{
+ const d=$('#dlg');
+ d.innerHTML=`<h3>${esc(msg)}</h3><div class="row" style="margin-top:14px"><button class="sp" id="ac">Annuler</button><button class="sp danger" id="aok">${esc(label)}</button></div>`;
+ let out=false;
+ d.onclose=()=>{d.onclose=null;res(out)};
+ $('#ac').onclick=()=>d.close();
+ $('#aok').onclick=()=>{out=true;d.close()};
+ d.showModal()})}
+function revoke(){urls.forEach(URL.revokeObjectURL);urls=[]}
+const url=b=>{const u=URL.createObjectURL(b);urls.push(u);return u};
+function count(z,ph){const m=media.filter(x=>x.zone===z&&x.phase===ph);return{p:m.filter(x=>x.type==='photo').length,v:m.filter(x=>x.type==='video').length,all:m}}
+const doneCount=ph=>allZones().filter(z=>count(z.id,ph).all.length).length;
+
+/* ---------- Marque & thème ---------- */
+const isLight=()=>document.documentElement.getAttribute('data-theme')==='light';
+function brandHeader(){return `<header><div class="nav"><div class="logo"><span class="logo-mark"><img src="images/logo-ab.png" alt="" width="36" height="24"></span><span class="logo-text">Plans <span>Brillance</span></span></div><button type="button" class="theme-toggle" id="theme" aria-label="Basculer jour/nuit">${isLight()?'☀️':'🌙'}</button></div></header>`}
+function bindTheme(){const b=$('#theme');if(!b)return;b.onclick=()=>{
+ if(isLight())document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme','light');
+ try{localStorage.setItem('abs_theme',isLight()?'light':'dark')}catch(e){}
+ b.textContent=isLight()?'☀️':'🌙'}}
+
+/* ---------- Accueil : liste des nettoyages ---------- */
+async function home(){
+ sess=null;revoke();
+ const list=(await getSessions()).sort((a,b)=>b.ts-a.ts);
+ let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo</span><h1>Ne rate plus aucun <span>plan</span></h1><p>Les bons plans de ton nettoyage, avant et après, pour un montage qui claque.</p></div>
+ <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage</button></div>
+ <h2>Nettoyages</h2>`;
+ if(!list.length)h+=`<div class="hint">Aucun nettoyage pour l’instant. Crée-en un avant de commencer le véhicule.</div>`;
+ for(const s of list){
+  const ms=await getMedia(s.id);
+  h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">🚗</div><div class="sp"><b>${esc(s.name)}</b><small>${new Date(s.ts).toLocaleDateString('fr-FR')} · ${ms.length} fichier(s)</small></div><button data-del="${esc(s.id)}">🗑️</button></div>`}
+ h+=`<div class="hint">🔒 Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
+ <div class="hint">💡 Ajoute l’app à l’écran d’accueil (Partager → Sur l’écran d’accueil) pour l’ouvrir comme une vraie app.</div>`;
+ $('#app').innerHTML=h;
+ $('#new').onclick=newSession;bindTheme();
+ document.querySelectorAll('.sess').forEach(el=>el.onclick=async e=>{
+  if(e.target.dataset.del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(e.target.dataset.del);home()}return}
+  open_(el.dataset.id)});
+}
+async function newSession(){
+ const name=await askText('Nouveau nettoyage','Véhicule (ex : Clio 4 grise, plaque…)');
+ if(!name)return;
+ const s={id:crypto.randomUUID(),name:name.trim().slice(0,80),ts:Date.now(),avantDone:false,apresDone:false};
+ await putSession(s);open_(s.id)}
+async function open_(id){
+ sess=(await getSessions()).find(s=>s.id===id);
+ media=await getMedia(id);hub()}
+
+/* ---------- Hub : AVANT / APRÈS ---------- */
+function hub(){
+ revoke();
+ const n=allZones().length;
+ const a=doneCount('avant'),b=doneCount('apres');
+ const unlocked=sess.avantDone;
+ let h=`<header><div class="row"><button id="back">←</button><h1 class="sp" style="font-size:17px">${esc(sess.name)}</h1><button id="ren">✏️</button></div></header>
+ <div class="hub">
+  <button class="sq a" id="sqA">${sess.avantDone?'<span class="ck">✅</span>':''}<span class="em">🧽</span><span class="step">Étape 1</span><strong>AVANT</strong><small>${a}/${n} plans</small></button>
+  <button class="sq b ${unlocked?'':'lock'}" id="sqB">${sess.apresDone?'<span class="ck">✅</span>':''}${unlocked?'':'<span class="ck">🔒</span>'}<span class="em">✨</span><span class="step">Étape 2</span><strong>APRÈS</strong><small>${unlocked?`${b}/${n} plans`:'Termine l’avant d’abord'}</small></button>
+ </div>
+ <div class="hint" style="text-align:center">Touche <b>AVANT</b> avant de commencer le nettoyage, puis <b>APRÈS</b> quand c’est fini. Ensuite, swipe de plan en plan.</div>`;
+ if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">📤 Exporter pour le montage</button></div>`;
+ $('#app').innerHTML=h;
+ $('#back').onclick=home;
+ $('#ren').onclick=async()=>{const nn=await askText('Nom du véhicule','Ex : Clio 4 grise',sess.name);if(nn){sess.name=nn.trim().slice(0,80);await putSession(sess);hub()}};
+ $('#sqA').onclick=()=>startFlow('avant');
+ $('#sqB').onclick=()=>{if(!sess.avantDone){toast('Termine d’abord l’AVANT 🙂');return}startFlow('apres')};
+ const e=$('#exp');if(e)e.onclick=exportDlg;
+}
+
+/* ---------- Parcours en swipe ---------- */
+function startFlow(ph){
+ phase=ph;
+ const zs=allZones();
+ const first=zs.findIndex(z=>!count(z.id,ph).all.length);
+ idx=first<0?0:first;
+ renderFlow()}
+function renderFlow(){
+ revoke();
+ const zs=allZones(),n=zs.length;
+ let h=`<div class="flow">
+  <div class="fh"><div class="row"><button id="fb">←</button><div class="sp t"><small id="fsub"></small><b id="ftitle"></b></div><button id="fl">☰</button></div><div class="bar"><i id="fbar"></i></div></div>
+  <div class="track" id="track">`;
+ zs.forEach((z,i)=>h+=`<section class="slide" data-i="${i}">${slideHtml(z)}</section>`);
+ h+=`<section class="slide" data-i="${n}">${finalHtml(zs)}</section></div>
+  <div class="fn"><button id="fprev">‹ Précédent</button><button id="fnext" class="primary">Suivant ›</button></div></div>`;
+ $('#app').innerHTML=h;
+ const tr=$('#track');
+ tr.scrollLeft=idx*tr.clientWidth;
+ tr.onscroll=()=>{clearTimeout(tr._t);tr._t=setTimeout(()=>{const i=Math.round(tr.scrollLeft/tr.clientWidth);if(i!==idx){idx=i;updHead()}},50)};
+ tr.onclick=flowClick;
+ $('#fb').onclick=()=>hub();
+ $('#fl').onclick=listDlg;
+ $('#fprev').onclick=()=>goTo(idx-1);
+ $('#fnext').onclick=()=>goTo(idx+1);
+ updHead();
+}
+function goTo(i){
+ const n=allZones().length;idx=Math.max(0,Math.min(n,i));
+ const tr=$('#track');tr.scrollTo({left:idx*tr.clientWidth,behavior:'smooth'});updHead()}
+function updHead(){
+ const zs=allZones(),n=zs.length;
+ const z=zs[idx];
+ $('#fsub').textContent=z?`${PH[phase]} · ${idx+1}/${n} · ${z.g}`:`${PH[phase]} · Récapitulatif`;
+ $('#ftitle').textContent=z?z.l:'Récapitulatif';
+ $('#fbar').style.width=Math.round(doneCount(phase)/n*100)+'%';
+ $('#fprev').disabled=idx<=0;
+ $('#fnext').style.visibility=idx>=n?'hidden':'visible';
+}
+function slideHtml(z){
+ const c=count(z.id,phase);
+ const custom=z.id.startsWith('x-');
+ return `<div class="big">${z.e}</div>
+ <h2 class="zn">${esc(z.l)}</h2><div class="zg">${esc(z.g)}</div>
+ <div class="zc ${c.all.length?'ok':'no'}">${c.all.length?`✅ ${c.p} photo(s) · ${c.v} vidéo(s)`:'Rien de filmé pour ce plan'}</div>
+ <div class="acts2"><button class="primary" data-a="photo" data-z="${esc(z.id)}">📷 Photo</button><button class="primary" data-a="video" data-z="${esc(z.id)}">🎥 Vidéo</button></div>
+ <button class="wide" data-a="import" data-z="${esc(z.id)}">📥 Importer (lunettes / galerie)</button>
+ ${c.all.length?`<div class="tg">${c.all.map(m=>`<div data-open="${esc(m.id)}">${m.type==='photo'?`<img src="${url(m.blob)}">`:`<video src="${url(m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">▶️</span>`}<button class="x" data-rm="${esc(m.id)}">✕</button></div>`).join('')}</div>`:''}
+ ${custom?`<button class="wide" style="background:transparent;color:var(--red)" data-delz="${esc(z.id)}">Supprimer ce plan libre</button>`:''}`}
+function finalHtml(zs){
+ const miss=zs.map((z,i)=>({z,i})).filter(o=>!count(o.z.id,phase).all.length);
+ const n=zs.length,d=n-miss.length;
+ return `<div class="big">${miss.length?'🧐':'🎉'}</div>
+ <h2 class="zn">${d}/${n} plans filmés</h2>
+ <div class="zg">${PH[phase]}</div>
+ ${miss.length?`<div style="color:var(--muted);font-size:14px">Plans oubliés (touche pour y retourner) :</div><div class="miss">${miss.map(o=>`<button data-jump="${o.i}">${o.z.e} ${esc(o.z.l)}</button>`).join('')}</div>`:`<div class="zc ok">Tous les plans sont faits, bravo !</div>`}
+ <button class="wide" data-addz="1">+ Ajouter un plan libre</button>
+ <button class="wide primary" style="padding:18px;font-size:17px" data-finish="1">✅ Terminer ${phase==='avant'?'l’avant':'l’après'}</button>`}
+async function flowClick(e){
+ const t=e.target;
+ const a=t.closest('[data-a]');
+ if(a){cur=a.dataset.z;({photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a]&&$({photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a]).click());return}
+ const rm=t.closest('[data-rm]');
+ if(rm){e.stopPropagation();if(await askConfirm('Supprimer ce média ?')){await delMedia(rm.dataset.rm);media=media.filter(x=>x.id!==rm.dataset.rm);renderFlow()}return}
+ const op=t.closest('[data-open]');
+ if(op){showMedia(op.dataset.open);return}
+ const j=t.closest('[data-jump]');
+ if(j){goTo(+j.dataset.jump);return}
+ if(t.closest('[data-addz]')){addZone(i=>{idx=i;renderFlow()});return}
+ const dz=t.closest('[data-delz]');
+ if(dz){if(await askConfirm('Supprimer ce plan libre et ses médias ?')){
+   const id=dz.dataset.delz;
+   for(const m of media.filter(x=>x.zone===id))await delMedia(m.id);
+   media=media.filter(x=>x.zone!==id);
+   localStorage.setItem('zonesPerso',JSON.stringify(customZones().filter(z=>z.id!==id)));
+   idx=Math.min(idx,allZones().length);renderFlow()}return}
+ if(t.closest('[data-finish]')){
+  if(phase==='avant')sess.avantDone=true;else sess.apresDone=true;
+  await putSession(sess);
+  toast(phase==='avant'?'Avant terminé ✅ Bon nettoyage !':'Après terminé ✅ Tu peux exporter');
+  hub()}
+}
+async function addMedia(files){
+ if(!cur||!files.length)return;
+ let n=0;
+ for(const f of files){
+  const isV=f.type.startsWith('video')||/\.(mov|mp4|m4v)$/i.test(f.name);
+  const ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||(isV?'mov':'jpg');
+  const m={id:crypto.randomUUID(),sid:sess.id,zone:cur,phase,type:isV?'video':'photo',blob:f,ext,ts:Date.now()+n++};
+  await putMedia(m);media.push(m)}
+ toast(`✅ ${files.length} ajouté(s)`);renderFlow()}
+['#inPhoto','#inVideo','#inImport'].forEach(s=>$(s).onchange=async e=>{const fs=[...e.target.files];e.target.value='';await addMedia(fs)});
+
+function showMedia(id){
+ const m=media.find(x=>x.id===id);if(!m)return;
+ const d=$('#dlg');
+ d.innerHTML=(m.type==='photo'?`<img src="${url(m.blob)}">`:`<video src="${url(m.blob)}" controls autoplay playsinline></video>`)+`<button id="cl" style="width:100%;margin-top:12px">Fermer</button>`;
+ $('#cl').onclick=()=>d.close();d.showModal()}
+function listDlg(){
+ const zs=allZones();const d=$('#dlg');
+ d.innerHTML=`<h3 style="margin-top:0">Tous les plans · ${PH[phase]}</h3><div class="lst">${zs.map((z,i)=>`<button data-j="${i}"><span>${z.e}</span><span>${esc(z.l)}</span><span class="d">${count(z.id,phase).all.length?'✅':'⬜'}</span></button>`).join('')}<button data-j="${zs.length}"><span>📋</span><span>Récapitulatif</span></button></div><button id="cl" style="width:100%">Fermer</button>`;
+ d.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{d.close();goTo(+b.dataset.j)});
+ $('#cl').onclick=()=>d.close();d.showModal()}
+function addZone(cb){
+ const d=$('#dlg');
+ d.innerHTML=`<h3 style="margin-top:0">Nouveau plan libre</h3><input type="text" id="zn" maxlength="50" placeholder="Ex : Tache sur siège, détail jante…">
+ <div class="row" style="flex-wrap:wrap">${EMOJIS.map((e,i)=>`<button data-e="${e}" style="font-size:24px;${i?'':'outline:2px solid var(--cyan)'}">${e}</button>`).join('')}</div>
+ <div class="row" style="margin-top:14px"><button class="sp" id="c">Annuler</button><button class="sp primary" id="ok">Ajouter</button></div>`;
+ let em=EMOJIS[0];
+ d.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{em=b.dataset.e;d.querySelectorAll('[data-e]').forEach(x=>x.style.outline='');b.style.outline='2px solid var(--cyan)'});
+ $('#c').onclick=()=>d.close();
+ $('#ok').onclick=()=>{const l=$('#zn').value.trim();if(!l)return;
+  const z=customZones();z.push({id:'x-'+Date.now(),l,e:em});localStorage.setItem('zonesPerso',JSON.stringify(z));d.close();cb(allZones().length-1)};
+ d.showModal()}
+
+/* ---------- Export ---------- */
+const slug=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function ordered(){
+ const zs=allZones();const out=[];let n=1;
+ for(const ph of ['avant','apres'])for(const z of zs){
+  const ms=media.filter(m=>m.zone===z.id&&m.phase===ph).sort((a,b)=>a.ts-b.ts);
+  ms.forEach((m,i)=>out.push({m,z,ph,name:`${String(n++).padStart(3,'0')}_${ph}_${slug(z.l)}_${i+1}.${m.ext}`}))}
+ return out}
+function planText(list){
+ const zs=allZones();let t=`PLAN DE MONTAGE — ${sess.name} — ${new Date().toLocaleDateString('fr-FR')}\n\n`;
+ t+=`Fichiers dans l'ordre logique (avant puis après).\n\n`;
+ for(const l of list)t+=`${l.name} | ${l.m.type==='video'?'VIDÉO':'PHOTO'} | ${l.ph.toUpperCase()} | ${l.z.l}\n`;
+ for(const ph of ['avant','apres']){
+  const missing=zs.filter(z=>!media.some(m=>m.zone===z.id&&m.phase===ph));
+  if(missing.length)t+=`\nPlans non filmés (${ph}) : ${missing.map(z=>z.l).join(', ')}\n`}
+ return t}
+function exportDlg(){
+ const list=ordered();const d=$('#dlg');
+ const size=list.reduce((a,l)=>a+l.m.blob.size,0);
+ d.innerHTML=`<h3 style="margin-top:0">📤 Export du montage</h3>
+ <p style="color:var(--muted);font-size:14px">${list.length} fichier(s) · ${(size/1048576).toFixed(0)} Mo<br>Nommés dans l’ordre : <i>001_avant_porte-conducteur_1…</i> + un fichier <b>plan_montage.txt</b> à donner avec les médias pour le montage.</p>
+ <div style="display:grid;gap:8px">
+ <button class="primary" id="sh">📲 Enregistrer dans Photos / Fichiers (partage iOS)</button>
+ <button id="zip">🗜️ Télécharger un ZIP</button>
+ <button id="tx">📝 Plan de montage seul (.txt)</button>
+ <button id="cl">Fermer</button></div>`;
+ $('#cl').onclick=()=>d.close();
+ $('#tx').onclick=()=>dl(new Blob([planText(list)],{type:'text/plain'}),'plan_montage.txt');
+ $('#sh').onclick=async()=>{
+  const files=list.map(l=>new File([l.m.blob],l.name,{type:l.m.blob.type||(l.m.type==='video'?'video/quicktime':'image/jpeg')}));
+  files.push(new File([planText(list)],'plan_montage.txt',{type:'text/plain'}));
+  try{
+   if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,title:sess.name})}
+   else toast('Partage non supporté : utilise le ZIP')}
+  catch(e){if(e.name!=='AbortError')toast('Trop volumineux ? Utilise le ZIP')}};
+ $('#zip').onclick=async()=>{toast('Création du ZIP…');
+  try{const blob=await makeZip([...list.map(l=>({name:l.name,blob:l.m.blob})),{name:'plan_montage.txt',blob:new Blob([planText(list)])}]);
+   dl(blob,`${slug(sess.name)||'nettoyage'}.zip`)}catch(e){toast('Échec ZIP (trop lourd ?)')}};
+ d.showModal()}
+function dl(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),20000)}
+
+/* ZIP « stored » minimal */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+async function makeZip(files){
+ const parts=[],central=[];let off=0;const enc=new TextEncoder();
+ const dt=new Date();const time=(dt.getHours()<<11)|(dt.getMinutes()<<5)|(dt.getSeconds()>>1);
+ const date=((dt.getFullYear()-1980)<<9)|((dt.getMonth()+1)<<5)|dt.getDate();
+ for(const f of files){
+  const data=new Uint8Array(await f.blob.arrayBuffer());const name=enc.encode(f.name);const crc=crc32(data);
+  const h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);
+  h.setUint16(10,time,true);h.setUint16(12,date,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);
+  h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+  parts.push(h.buffer,name,data);
+  const c=new DataView(new ArrayBuffer(46));
+  c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);
+  c.setUint16(12,time,true);c.setUint16(14,date,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);
+  c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+  central.push(c.buffer,name);
+  off+=30+name.length+data.length}
+ let csize=0;central.forEach(x=>csize+=x.byteLength);
+ const e=new DataView(new ArrayBuffer(22));
+ e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,csize,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...central,e.buffer],{type:'application/zip'})}
+
+/* ---------- Démarrage ---------- */
+openDB().then(home);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+</script>
+</body>
+</html>
