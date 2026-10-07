@@ -319,7 +319,7 @@ async function home(){
  $('#app').innerHTML=h;
  $('#new').onclick=newSession;bindTheme();
  document.querySelectorAll('.sess').forEach(el=>el.onclick=async e=>{
-  if(e.target.dataset.del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(e.target.dataset.del);home()}return}
+  const del=e.target.closest('[data-del]');if(del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(del.dataset.del);home()}return}
   open_(el.dataset.id)});
 }
 async function newSession(){
