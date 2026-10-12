@@ -188,6 +188,24 @@ button[disabled]{opacity:.35}
 /* --- page Airbnb : mêmes couleurs que la page « locations saisonnières » du site --- */
 :root[data-brand="airbnb"]{--cyan:#FF5A5F;--on-accent:#ffffff}
 :root[data-theme="light"][data-brand="airbnb"]{--cyan:#D8343A;--on-accent:#ffffff}
+
+/* --- rendez-vous de l'espace pro, réglages --- */
+.rdv{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:8px 16px;padding:12px;text-align:left;border-radius:var(--radius)}
+.rdv .rd{flex:none;width:84px;text-align:center;font-size:.78rem;color:var(--muted);line-height:1.25}
+.rdv .rd b{display:block;color:var(--cyan);font-size:.82rem;text-transform:capitalize}
+.rdv .sp b{display:block}.rdv .sp small{display:block;color:var(--muted);font-size:.8rem}
+.rdv .go{flex:none;font-size:.78rem;font-weight:700;color:var(--cyan)}
+.hint.warn{color:var(--amber)}
+.lnk{display:flex;gap:10px;align-items:flex-start;margin:12px 16px 0;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:.85rem}
+.lnk svg.i{color:var(--cyan);margin-top:.15em}
+.lnk small{display:block;color:var(--muted)}.lnk small.ok{color:var(--cyan)}
+.small-hint{color:var(--muted);font-size:.82rem;line-height:1.45;margin:8px 0 4px}
+.pro{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px;background:var(--panel2)}
+.pro b{display:block}.pro small{color:var(--muted);font-size:.78rem;display:block}
+.pro .on{font-size:.75rem;font-weight:700;color:var(--cyan);border:1px solid var(--cyan);border-radius:99px;padding:3px 9px}
+.pro .who{margin-top:6px}
+.pro input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--foam);font:inherit;margin-top:8px}
+.pro .err{color:var(--red);font-size:.82rem;min-height:1em;margin-top:6px}
 /* --- barre des activités (pied de page) --- */
 body.has-tab{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--ink);background:color-mix(in srgb,var(--ink) 78%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border-top:1px solid var(--line)}
@@ -614,6 +632,7 @@ async function home(act){
  const list=all.filter(s=>tplOf(s).act===curAct);
  let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo · ${A.l}</span><h1>${A.h}</h1><p>${A.p}</p></div>
  <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button></div>
+ <div id="rdv"></div>
  <h2>Nettoyages ${esc(actLow(curAct))}</h2>`;
  if(!list.length)h+=`<div class="hint">Aucun nettoyage ${esc(actLow(curAct))} pour l’instant. Crée-en un avant de commencer.</div>`;
  let total=0;
@@ -624,10 +643,11 @@ async function home(act){
   h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico(FAM[t.fam].e)}</div><div class="sp"><b>${esc(s.name)}</b><small>${esc(t.l)} · ${new Date(s.ts).toLocaleDateString('fr-FR')}<br>${ms.length} fichier(s)${size?' · '+fmtSize(size):''}</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
  h+=storageHtml(total,await storageInfo());
  h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
- <div class="links"><button id="how">Comment ça marche</button><button id="priv">Confidentialité</button></div>`+tabbar();
+ <div class="links"><button id="how">Comment ça marche</button><button id="set">Réglages</button><button id="priv">Confidentialité</button></div>`+tabbar();
  $('#app').innerHTML=h;document.body.classList.add('has-tab');
  $('#new').onclick=newSession;bindTheme();
- $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;
+ $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;$('#set').onclick=settingsDlg;
+ renderRdv();syncPending();
  document.querySelectorAll('.tabbar [data-act]').forEach(b=>b.onclick=()=>{if(b.dataset.act!==curAct){home(b.dataset.act);window.scrollTo(0,0)}});
  document.querySelectorAll('.sess').forEach(el=>el.onclick=async e=>{
   const del=e.target.closest('[data-del]');if(del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(del.dataset.del);home()}return}
@@ -648,6 +668,8 @@ function privDlg(){
  <li>Tes photos, tes vidéos et les noms de tes nettoyages sont enregistrés <b>uniquement sur cet appareil</b>, dans ce navigateur. Rien n’est envoyé sur un serveur.</li>
  <li>Pas de publicité, pas de traceur. Seuls tes réglages (thème, plans libres) sont mémorisés sur l’appareil.</li>
  <li>L’appareil photo n’est utilisé que lorsque tu touches Photo ou Vidéo.</li>
+ <li>Si tu te connectes à un espace pro (équipe Atelier Brillance), l’app lit tes rendez-vous confirmés et coche la case « Photos prises » : aucune photo ni vidéo n’est envoyée.</li>
+ <li>Les photos sont compressées sur l’appareil (réglable dans Réglages) ; les vidéos ne sont pas modifiées.</li>
  <li>Comme pour tout site, l’hébergeur (Netlify) reçoit l’adresse IP de ton appareil au chargement des pages.</li>
  <li>Pour tout effacer : supprime tes nettoyages avec la corbeille, ou efface les données du site dans les réglages du navigateur.</li>
  </ul><p>Attention : si tu effaces les données du navigateur ou supprimes l’app, tes médias non exportés sont perdus.</p>`)}
@@ -686,6 +708,7 @@ function hub(){
   return `<button class="sq ${cls} ${locked?'lock':''}" id="${id}">${mark}<span class="em">${ico(ic)}</span><strong>${PH[ph]}</strong><small>${locked?'Après l’avant':doneCount(ph)+'/'+zs.length+' plans'}</small></button>`};
  let h=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><div class="sp ht"><b>${esc(sess.name)}</b><small>${esc(t.l)}</small></div><button id="ren" class="ic-only" aria-label="Renommer">${ico('edit')}</button></div></header>
  <div class="hub">${tile('sqA','a','avant',f.a)}${tile('sqP','c','pendant','spray')}${tile('sqB','b','apres',f.b)}</div>
+ ${linkLine(sess)}
  <div class="hint" style="text-align:center"><b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
  if(baZones().length)h+=`<div class="wrap" style="margin-top:10px"><button id="ba" style="width:100%;padding:16px">${ico('sparkles')} Créer un avant/après à poster</button></div>`;
@@ -793,15 +816,19 @@ async function flowClick(e){
   sess[phase+'Done']=true;
   await putSession(sess);
   toast({avant:'Avant terminé. Bon nettoyage !',pendant:'Plans d’action enregistrés.',apres:'Après terminé. Tu peux exporter.'}[phase]);
-  hub()}
+  hub();
+  const r=await syncPhotos(sess);
+  if(r==='ok'){toast('Case « Photos prises » cochée dans l’espace pro');hub()}else if(r)hub()}
 }
 async function addMedia(files){
  if(!cur||!files.length||!sess)return;
- let n=0,ok=0;
+ let n=0,ok=0,saved=0;
+ if(files.some(f=>!(f.type.startsWith('video')||/\.(mov|mp4|m4v)$/i.test(f.name))))toast('Compression des photos…');
  for(const f of files){
   const isV=f.type.startsWith('video')||/\.(mov|mp4|m4v)$/i.test(f.name);
-  const ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||(isV?'mov':'jpg');
-  const m={id:crypto.randomUUID(),sid:sess.id,zone:cur,phase,type:isV?'video':'photo',blob:f,ext,ts:Date.now()+n++};
+  let ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||(isV?'mov':'jpg'),blob=f;
+  if(!isV){const c=await compressPhoto(f);blob=c.blob;if(c.ext)ext=c.ext;saved+=Math.max(0,f.size-blob.size)}
+  const m={id:crypto.randomUUID(),sid:sess.id,zone:cur,phase,type:isV?'video':'photo',blob,ext,ts:Date.now()+n++};
   try{await putMedia(m);media.push(m);ok++}
   catch(e){
    renderFlow();
@@ -810,7 +837,7 @@ async function addMedia(files){
  renderFlow();
  const si=await storageInfo();
  if(si.quota&&si.used/si.quota>.85)toast('Stockage presque plein : exporte puis supprime un ancien nettoyage');
- else toast(`${ok} ajouté(s)`)}
+ else toast(`${ok} ajouté(s)`+(saved>300000?` · ${fmtSize(saved)} économisés`:''))}
 ['#inPhoto','#inVideo','#inImport'].forEach(s=>$(s).onchange=async e=>{const fs=[...e.target.files];e.target.value='';await addMedia(fs)});
 
 function showMedia(id){
@@ -976,6 +1003,157 @@ async function makeZip(files){
  const e=new DataView(new ArrayBuffer(22));
  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,csize,true);e.setUint32(16,off,true);
  return new Blob([...parts,...central,e.buffer],{type:'application/zip'})}
+
+/* ---------- Compression automatique des photos ---------- */
+const QUAL={
+ hd:{l:'Haute',d:'2560 px · idéal pour le montage',max:2560,q:.86},
+ md:{l:'Légère',d:'1600 px · prend le moins de place',max:1600,q:.8},
+ orig:{l:'Originale',d:'Aucune compression',max:0}
+};
+const qualKey=()=>QUAL[lsGet('pb_q','hd')]?lsGet('pb_q','hd'):'hd';
+/* Réduit la photo (taille et poids) avant de l'enregistrer ; les vidéos ne sont jamais touchées.
+   En cas de souci (format illisible, image déjà légère), on garde l'original. */
+async function compressPhoto(f){
+ const Q=QUAL[qualKey()];
+ if(!Q.max)return {blob:f};
+ let src=null,w=0,h=0,tmp=null;
+ try{
+  try{src=await createImageBitmap(f,{imageOrientation:'from-image'})}
+  catch(e){tmp=URL.createObjectURL(f);src=await loadImg(tmp)}
+  w=src.naturalWidth||src.width;h=src.naturalHeight||src.height;
+  if(!w||!h)return {blob:f};
+  const s=Math.min(1,Q.max/Math.max(w,h));
+  if(s===1&&/jpe?g/i.test(f.type)&&f.size<1500000)return {blob:f};
+  const cv=document.createElement('canvas');cv.width=Math.round(w*s);cv.height=Math.round(h*s);
+  cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);
+  const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',Q.q));
+  cv.width=cv.height=0;
+  if(!b||b.size>=f.size)return {blob:f};
+  return {blob:new File([b],(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg',lastModified:f.lastModified||Date.now()}),ext:'jpg'};
+ }catch(e){return {blob:f}}
+ finally{if(src&&src.close)src.close();if(tmp)URL.revokeObjectURL(tmp)}}
+
+/* ---------- Liaison avec les espaces pro (équipe Atelier Brillance) ----------
+   Connexion facultative. Les clés ci-dessous sont les clés publiques (anon) déjà présentes sur les sites :
+   la sécurité repose sur les règles d'accès (RLS) de chaque base. Aucune photo n'est envoyée. */
+const PRO={
+ auto:{l:'Espace pro Auto',d:'Site atelier-brillance-auto.fr',url:'https://gaxgdiljpafogsaahyax.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdheGdkaWxqcGFmb2dzYWFoeWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzQwNTUsImV4cCI6MjEwMjcxMDA1NX0.TEc0ikwvkUWT43kCnkBC8pu-czKo7n9ii-o8dNmxFnw'},
+ groupe:{l:'Espace pro du groupe',d:'Site Atelier Brillance Services',url:'https://ucaobkkblsrgzohugqiu.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjYW9ia2tibHNyZ3pvaHVncWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3Nzc5NTEsImV4cCI6MjEwNjM1Mzk1MX0.F4JgB60X399X56bcAtMIBNpo_FZplRTX7b6V-vrWo7A'}
+};
+function proAuth(k){try{return JSON.parse(lsGet('pb_pro_'+k,'null'))}catch(e){return null}}
+const proOn=()=>Object.keys(PRO).some(k=>proAuth(k));
+function proKeep(k,j,email){lsSet('pb_pro_'+k,JSON.stringify({t:j.access_token,r:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000,email}))}
+function proLogout(k){try{localStorage.removeItem('pb_pro_'+k)}catch(e){}}
+async function proLogin(k,email,pw){
+ const P=PRO[k];
+ const r=await fetch(P.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:P.key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(/invalid/i.test(j.error_description||j.msg||'')?'E-mail ou mot de passe incorrect.':'Connexion impossible pour le moment.');
+ proKeep(k,j,(j.user&&j.user.email)||email)}
+async function proToken(k){
+ const a=proAuth(k);if(!a)return null;
+ if(Date.now()<a.exp-60000)return a.t;
+ const P=PRO[k];
+ try{
+  const r=await fetch(P.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:P.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:a.r})});
+  if(!r.ok){if(r.status===400||r.status===401)proLogout(k);return null}
+  const j=await r.json();proKeep(k,j,a.email);return j.access_token}
+ catch(e){return null}}
+async function proFetch(k,path,opt={}){
+ const t=await proToken(k);if(!t){const e=new Error('auth');e.code='auth';throw e}
+ const P=PRO[k];
+ const r=await fetch(P.url+'/rest/v1/'+path,{...opt,headers:{apikey:P.key,Authorization:'Bearer '+t,'Content-Type':'application/json',...(opt.headers||{})}});
+ if(!r.ok){const j=await r.json().catch(()=>({}));const e=new Error(j.message||('HTTP '+r.status));e.code=j.code||String(r.status);throw e}
+ return r.status===204?null:r.json().catch(()=>null)}
+const isoDay=off=>{const d=new Date();d.setDate(d.getDate()+off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+/* quelle liste de plans ouvrir pour une réservation */
+function mapType(svc,p,kind){
+ p=(p||'').toLowerCase();
+ if(/canap|fauteuil/.test(p))return 'canape';
+ if(/matelas/.test(p))return 'matelas';
+ if(svc==='auto'){if(/tapis/.test(p))return 'tapis';if(/express/.test(p))return 'auto-express';if(/int[ée]rieur/.test(p)&&!/ext[ée]rieur/.test(p))return 'auto-interieur';return 'auto-complet'}
+ if(svc==='textiles')return /tapis|moquette/.test(p)?'tapis':'canape';
+ if(svc==='maison'){if(/saisonn|airbnb|booking|gîte|gite|chambre d/.test(p))return 'airbnb-menage';if(/cuisine/.test(p))return 'maison-cuisine';if(/salle de bain/.test(p))return 'maison-sdb';return 'maison-complet'}
+ if(svc==='vitres')return (/vitrine|commerce|boutique|magasin/.test(p)||kind==='pro')?'vitres-commerce':'vitres-maison';
+ if(svc==='pro')return /chantier|travaux/.test(p)?'pro-chantier':'pro-bureaux';
+ return 'auto-complet'}
+let RDV={at:0,list:[],errs:[]};
+async function fetchRdv(force){
+ if(!force&&Date.now()-RDV.at<60000)return RDV;
+ const list=[],errs=[],from=isoDay(-3);
+ if(proAuth('auto'))try{
+  const rows=await proFetch('auto',`requests?select=*&statut=eq.${encodeURIComponent('Confirmé')}&date=gte.${from}&order=date.asc,heure.asc&limit=60`)||[];
+  rows.forEach(r=>list.push({src:'auto',id:r.id,client:r.nom||'Client',prest:r.prestation||'',det:[r.marque,r.modele].filter(Boolean).join(' '),date:r.date||'',time:r.heure||'',type:mapType('auto',r.prestation),done:!!r.photos_prises}))
+ }catch(e){errs.push(e.code==='auth'?'auto-auth':'auto')}
+ if(proAuth('groupe'))try{
+  const rows=await proFetch('groupe',`requests?select=*&status=eq.confirmee&deleted_at=is.null&preferred_date=gte.${from}&order=preferred_date.asc&limit=100`)||[];
+  rows.forEach(r=>{if(!r.service||r.service==='contact')return;list.push({src:'groupe',id:r.id,client:r.company||r.client_name||'Client',prest:r.prestation||'',det:r.detail||'',date:r.preferred_date||'',time:r.preferred_time||'',type:mapType(r.service,r.prestation,r.kind),done:!!r.photos_prises})})
+ }catch(e){errs.push(e.code==='auth'?'groupe-auth':'groupe')}
+ list.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ RDV={at:Date.now(),list,errs};return RDV}
+function fmtDay(d){if(!d)return 'Date à confirmer';if(d===isoDay(0))return 'Aujourd’hui';if(d===isoDay(1))return 'Demain';const x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}
+async function renderRdv(){
+ const box=$('#rdv');if(!box||!proOn())return;
+ box.innerHTML=`<h2>Rendez-vous confirmés</h2><div class="hint">Chargement…</div>`;
+ const act=curAct,R=await fetchRdv(),all=await getSessions();
+ if(!$('#rdv')||act!==curAct)return;
+ const mine=R.list.filter(r=>TPL[r.type]&&TPL[r.type].act===curAct);
+ let h=`<h2>Rendez-vous confirmés</h2>`;
+ if(R.errs.length)h+=`<div class="hint warn">${R.errs.some(e=>/-auth$/.test(e))?'Reconnecte-toi à l’espace pro dans Réglages.':'Rendez-vous indisponibles (pas de réseau ?).'}</div>`;
+ if(!mine.length&&!R.errs.length)h+=`<div class="hint">Aucun rendez-vous ${esc(actLow(curAct))} confirmé à venir.</div>`;
+ for(const r of mine){
+  const ex=all.find(s=>s.link&&s.link.src===r.src&&s.link.id===r.id);
+  h+=`<button class="rdv" data-rdv="${esc(r.src+'|'+r.id)}"><span class="rd"><b>${esc(fmtDay(r.date))}</b>${esc(r.time||'')}</span><span class="sp"><b>${esc(r.client)}</b><small>${esc([TPL[r.type].l,r.det||(r.prest!==TPL[r.type].l?r.prest:'')].filter(Boolean).join(' · '))}</small></span><span class="go">${ex?'Ouvrir':'Démarrer'}</span></button>`}
+ box.innerHTML=h;
+ box.querySelectorAll('[data-rdv]').forEach(b=>b.onclick=()=>{const [src,id]=b.dataset.rdv.split('|');const r=mine.find(x=>x.src===src&&String(x.id)===id);if(r)fromRdv(r)})}
+async function fromRdv(r){
+ const all=await getSessions();
+ const ex=all.find(s=>s.link&&s.link.src===r.src&&s.link.id===r.id);
+ if(ex){open_(ex.id);return}
+ const s={id:crypto.randomUUID(),name:[r.client,r.det||r.prest].filter(Boolean).join(' · ').slice(0,80),ts:Date.now(),type:r.type,avantDone:false,pendantDone:false,apresDone:false,link:{src:r.src,id:r.id,date:r.date,time:r.time}};
+ await putSession(s);open_(s.id)}
+/* coche « Photos/vidéos prises » dans l'espace pro quand l'avant ET l'après sont terminés */
+async function syncPhotos(s){
+ if(!s||!s.link||s.synced||!(s.avantDone&&s.apresDone)||!proAuth(s.link.src))return null;
+ try{
+  await proFetch(s.link.src,`requests?id=eq.${encodeURIComponent(s.link.id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({photos_prises:true})});
+  s.synced=true;delete s.syncErr}
+ catch(e){s.syncErr=(e.code==='PGRST204'||/photos_prises/.test(e.message))?'col':'net'}
+ await putSession(s);return s.synced?'ok':s.syncErr}
+async function syncPending(){
+ if(!proOn())return;
+ for(const s of await getSessions())if(s.link&&!s.synced&&s.avantDone&&s.apresDone)await syncPhotos(s)}
+function linkLine(s){
+ if(!s.link)return '';
+ const P=PRO[s.link.src],st=s.synced?`${ico('check-circle')} Case « Photos prises » cochée dans l’espace pro`:s.syncErr==='col'?'La case « Photos prises » n’existe pas encore dans cet espace pro.':s.syncErr?'Espace pro injoignable : nouvel essai à la prochaine ouverture.':'La case « Photos prises » sera cochée à la fin de l’après.';
+ return `<div class="lnk">${ico('clipboard')}<span><b>Rendez-vous ${esc(fmtDay(s.link.date))}${s.link.time?' · '+esc(s.link.time):''}</b><small>${P?esc(P.l):''}</small><small class="${s.synced?'ok':''}">${st}</small></span></div>`}
+
+/* ---------- Réglages : qualité des photos + connexion aux espaces pro ---------- */
+function settingsDlg(){
+ const d=$('#dlg');
+ const proBlock=k=>{const P=PRO[k],a=proAuth(k);
+  return `<div class="pro" data-k="${k}"><div class="row"><span class="sp"><b>${esc(P.l)}</b><small>${esc(P.d)}</small></span>${a?`<span class="on">Connecté</span>`:''}</div>
+  ${a?`<small class="who">${esc(a.email||'')}</small><button class="wide" data-out="${k}">Se déconnecter</button>`
+     :`<input type="email" autocomplete="username" placeholder="E-mail de l’espace pro" data-mail="${k}"><input type="password" autocomplete="current-password" placeholder="Mot de passe" data-pw="${k}"><div class="err" data-err="${k}"></div><button class="wide primary" data-in="${k}">Se connecter</button>`}</div>`};
+ d.innerHTML=`<h3>Réglages</h3>
+ <div class="lbl">Qualité des photos</div>
+ <div class="seg" id="qual">${Object.entries(QUAL).map(([k,q])=>`<button data-q="${k}" class="${k===qualKey()?'on':''}">${q.l}</button>`).join('')}</div>
+ <p class="small-hint" id="qd">${esc(QUAL[qualKey()].d)}. Les photos sont compressées automatiquement à l’enregistrement ; les vidéos ne sont pas modifiées.</p>
+ <div class="lbl">Espace pro · équipe Atelier Brillance</div>
+ <p class="small-hint">Facultatif. Une fois connecté, tes rendez-vous confirmés apparaissent sur chaque page et la case « Photos/vidéos prises » se coche toute seule. Aucune photo n’est envoyée.</p>
+ ${Object.keys(PRO).map(proBlock).join('')}
+ <button id="cl" style="width:100%;margin-top:14px">Fermer</button>`;
+ d.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{lsSet('pb_q',b.dataset.q);d.querySelectorAll('[data-q]').forEach(x=>x.classList.toggle('on',x===b));$('#qd').textContent=QUAL[b.dataset.q].d+'. Les photos sont compressées automatiquement à l’enregistrement ; les vidéos ne sont pas modifiées.'});
+ d.querySelectorAll('[data-out]').forEach(b=>b.onclick=()=>{proLogout(b.dataset.out);RDV.at=0;settingsDlg()});
+ d.querySelectorAll('[data-in]').forEach(b=>b.onclick=async()=>{
+  const k=b.dataset.in,m=d.querySelector(`[data-mail="${k}"]`).value.trim(),pw=d.querySelector(`[data-pw="${k}"]`).value,er=d.querySelector(`[data-err="${k}"]`);
+  if(!m||!pw){er.textContent='E-mail et mot de passe requis.';return}
+  b.disabled=true;b.textContent='Connexion…';
+  try{await proLogin(k,m,pw);RDV.at=0;settingsDlg();toast('Connecté à l’'+PRO[k].l.toLowerCase())}
+  catch(e){b.disabled=false;b.textContent='Se connecter';er.textContent=e.message}});
+ d.onclose=()=>{d.onclose=null;if(!sess)home()};
+ $('#cl').onclick=()=>d.close();
+ if(!d.open)d.showModal()}
 
 /* ---------- Démarrage ---------- */
 curAct=ACT[lsGet('pb_act','auto')]?lsGet('pb_act','auto'):'auto';

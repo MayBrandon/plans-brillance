@@ -1,4 +1,4 @@
-const C = 'plans-brillance-v9';
+const C = 'plans-brillance-v10';
 const FILES = ['./', './index.html', './manifest.webmanifest', './images/logo-ab.png', './images/apple-touch-icon.png', './images/favicon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -8,6 +8,7 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // données des espaces pro : jamais en cache
   e.respondWith(
     fetch(e.request).then(r => {
       const copy = r.clone();
