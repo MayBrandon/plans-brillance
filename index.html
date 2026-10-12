@@ -183,6 +183,15 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .info p{color:var(--muted);margin:12px 0 0}
 dialog{overflow-y:auto}
 button[disabled]{opacity:.35}
+
+/* --- barre des activités (pied de page) --- */
+body.has-tab{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--ink);background:color-mix(in srgb,var(--ink) 78%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border-top:1px solid var(--line)}
+.tabbar button,:root[data-theme="light"] .tabbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 5px;border:0;border-radius:14px;background:none;box-shadow:none;color:var(--muted);font-size:.64rem;font-weight:600;letter-spacing:0}
+.tabbar button::before{display:none}
+.tabbar button svg.i48{width:28px;height:28px;margin:0;vertical-align:0;stroke-width:2.6}
+.tabbar button.on,:root[data-theme="light"] .tabbar button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 35%,transparent)}
+.tabbar button:active{transform:scale(.94)}
 /* aucune barre de défilement visible (le défilement au doigt reste actif) */
 html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 *::-webkit-scrollbar{display:none;width:0;height:0}
@@ -289,7 +298,45 @@ const ICONS48={
  'bucket':'<path d="M9.5 16H38.5L35.4 39.6Q35 42.5 32 42.5H16Q13 42.5 12.6 39.6Z"/><path d="M9.5 16Q24 0 38.5 16"/><path d="M11 26.5Q15.3 23.5 19.6 26.5T28.4 26.5T37 26.5L35.4 39.6Q35 42.5 32 42.5H16Q13 42.5 12.6 39.6Z" fill="currentColor" fill-opacity=".3"/>',
  'brush':'<path d="M13 14Q24 3 35 14"/><rect x="7" y="14" width="34" height="10" rx="4" fill="currentColor" fill-opacity=".3"/><path d="M11.5 24V33M16.5 24V34.5M21.5 24V35M26.5 24V35M31.5 24V34.5M36.5 24V33"/>',
  'squeegee':'<rect x="6" y="8" width="36" height="6.4" rx="2.6" fill="currentColor" fill-opacity=".3"/><path d="M15 14.4L20.5 21.5H27.5L33 14.4"/><rect x="21.6" y="21.5" width="4.8" height="21" rx="2.4"/>',
- 'pillar':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/><path d="M27.75 17V29.5M16.5 29.5H31.8" stroke-width="4.6"/>'
+ 'pillar':'<path d="M7 32H4Q2.5 32 2.5 30.5V27.5Q2.5 25 5 24.3L14 22L19.5 15.3Q20.6 14 22.5 14H30.5Q32.6 14 34.2 15.4L40 21.3L43.2 22.3Q45.5 23 45.5 25.5V30.5Q45.5 32 44 32H41M16 32H32"/><circle cx="11.5" cy="32" r="4.5"/><circle cx="36.5" cy="32" r="4.5"/><path d="M16.5 29.5V22.6L20.6 17H27.75V29.5Z"/><path d="M27.75 29.5V17H31.2L37 22.3V26.3Q33.2 26.8 31.8 29.5Z"/><path d="M17.4 22.3H36.6M23.6 25H26M32.2 25H34.4"/><path d="M27.75 17V29.5M16.5 29.5H31.8" stroke-width="4.6"/>',
+ 'house':'<path d="M5 22L24 6L43 22"/><path d="M10 18.5V41H38V18.5"/><path d="M32 12V8H36V15.4"/><rect x="20" y="29" width="8" height="12" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="13.5" y="24" width="5" height="5" rx=".8"/><rect x="29.5" y="24" width="5" height="5" rx=".8"/>',
+ 'house-dirty':'<path d="M5 22L24 6L43 22"/><path d="M10 18.5V41H38V18.5"/><path d="M32 12V8H36V15.4"/><rect x="20" y="29" width="8" height="12" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="13.5" y="24" width="5" height="5" rx=".8"/><rect x="29.5" y="24" width="5" height="5" rx=".8"/><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'house-clean':'<path d="M5 22L24 6L43 22"/><path d="M10 18.5V41H38V18.5"/><path d="M32 12V8H36V15.4"/><rect x="20" y="29" width="8" height="12" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="13.5" y="24" width="5" height="5" rx=".8"/><rect x="29.5" y="24" width="5" height="5" rx=".8"/><path d="M43 3Q43 7 47 7Q43 7 43 11Q43 7 39 7Q43 7 43 3Z" fill="currentColor" fill-opacity=".35"/><path d="M5 6Q5 9 8 9Q5 9 5 12Q5 9 2 9Q5 9 5 6Z" fill="currentColor" fill-opacity=".35"/><path d="M45 15Q45 17 47 17Q45 17 45 19Q45 17 43 17Q45 17 45 15Z" fill="currentColor" fill-opacity=".35"/>',
+ 'building':'<rect x="11" y="6" width="26" height="36" rx="2"/><rect x="15" y="11" width="5" height="4" rx=".8"/><rect x="21.5" y="11" width="5" height="4" rx=".8"/><rect x="28" y="11" width="5" height="4" rx=".8"/><rect x="15" y="18" width="5" height="4" rx=".8"/><rect x="21.5" y="18" width="5" height="4" rx=".8"/><rect x="28" y="18" width="5" height="4" rx=".8"/><rect x="15" y="25" width="5" height="4" rx=".8"/><rect x="21.5" y="25" width="5" height="4" rx=".8"/><rect x="28" y="25" width="5" height="4" rx=".8"/><rect x="20" y="33" width="8" height="9" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M5 42H43"/>',
+ 'building-dirty':'<rect x="11" y="6" width="26" height="36" rx="2"/><rect x="15" y="11" width="5" height="4" rx=".8"/><rect x="21.5" y="11" width="5" height="4" rx=".8"/><rect x="28" y="11" width="5" height="4" rx=".8"/><rect x="15" y="18" width="5" height="4" rx=".8"/><rect x="21.5" y="18" width="5" height="4" rx=".8"/><rect x="28" y="18" width="5" height="4" rx=".8"/><rect x="15" y="25" width="5" height="4" rx=".8"/><rect x="21.5" y="25" width="5" height="4" rx=".8"/><rect x="28" y="25" width="5" height="4" rx=".8"/><rect x="20" y="33" width="8" height="9" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M5 42H43"/><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'building-clean':'<rect x="11" y="6" width="26" height="36" rx="2"/><rect x="15" y="11" width="5" height="4" rx=".8"/><rect x="21.5" y="11" width="5" height="4" rx=".8"/><rect x="28" y="11" width="5" height="4" rx=".8"/><rect x="15" y="18" width="5" height="4" rx=".8"/><rect x="21.5" y="18" width="5" height="4" rx=".8"/><rect x="28" y="18" width="5" height="4" rx=".8"/><rect x="15" y="25" width="5" height="4" rx=".8"/><rect x="21.5" y="25" width="5" height="4" rx=".8"/><rect x="28" y="25" width="5" height="4" rx=".8"/><rect x="20" y="33" width="8" height="9" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M5 42H43"/><path d="M43 3Q43 7 47 7Q43 7 43 11Q43 7 39 7Q43 7 43 3Z" fill="currentColor" fill-opacity=".35"/><path d="M5 6Q5 9 8 9Q5 9 5 12Q5 9 2 9Q5 9 5 6Z" fill="currentColor" fill-opacity=".35"/><path d="M45 15Q45 17 47 17Q45 17 45 19Q45 17 43 17Q45 17 45 15Z" fill="currentColor" fill-opacity=".35"/>',
+ 'window':'<rect x="9" y="5" width="30" height="35" rx="2"/><rect x="12.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="25.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M21 20V25M27 20V25"/><rect x="6" y="40" width="36" height="3.6" rx="1.5"/>',
+ 'window-dirty':'<rect x="9" y="5" width="30" height="35" rx="2"/><rect x="12.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="25.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M21 20V25M27 20V25"/><rect x="6" y="40" width="36" height="3.6" rx="1.5"/><g fill="currentColor" stroke="none"><circle cx="6" cy="8" r="1.6"/><circle cx="42.5" cy="6.5" r="1.3"/><circle cx="44.5" cy="13" r="1.8"/><circle cx="3.5" cy="15" r="1.1"/></g>',
+ 'window-clean':'<rect x="9" y="5" width="30" height="35" rx="2"/><rect x="12.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="25.5" y="8.5" width="10" height="28" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M21 20V25M27 20V25"/><rect x="6" y="40" width="36" height="3.6" rx="1.5"/><path d="M44 5.6Q44 9 47.4 9Q44 9 44 12.4Q44 9 40.6 9Q44 9 44 5.6Z" fill="currentColor" fill-opacity=".35"/><path d="M4.5 6.2Q4.5 9 7.3 9Q4.5 9 4.5 11.8Q4.5 9 1.7000000000000002 9Q4.5 9 4.5 6.2Z" fill="currentColor" fill-opacity=".35"/><path d="M45.5 15.2Q45.5 17 47.3 17Q45.5 17 45.5 18.8Q45.5 17 43.7 17Q45.5 17 45.5 15.2Z" fill="currentColor" fill-opacity=".35"/>',
+ 'frame':'<rect x="9" y="5" width="30" height="35" rx="2" stroke-width="4.6"/><rect x="12.5" y="8.5" width="10" height="28" rx="1"/><rect x="25.5" y="8.5" width="10" height="28" rx="1"/><rect x="6" y="40" width="36" height="3.6" rx="1.5" fill="currentColor" fill-opacity=".3" stroke-width="4"/>',
+ 'bay':'<rect x="4" y="9" width="40" height="31" rx="2"/><path d="M17.3 9V40M30.6 9V40"/><path d="M8 21L12.5 16.5M8 26L16 18M21.5 22L26 17.5" stroke-width="2"/><path d="M33.5 25H40.5M38 22.5L40.5 25L38 27.5"/><path d="M2 43H46"/>',
+ 'rail':'<path d="M11 6V27M37 6V27"/><path d="M11 27H37"/><rect x="5" y="29" width="38" height="9" rx="2"/><path d="M9 32.5H39M9 35H39" fill="currentColor" fill-opacity=".3"/><g fill="currentColor" stroke="none"><circle cx="15" cy="33.8" r="1.1"/><circle cx="22" cy="33.6" r=".8"/><circle cx="31" cy="34" r="1.2"/></g>',
+ 'veranda':'<path d="M6 42V20L24 9L42 20V42"/><path d="M6 20H42M15 14.5V42M24 9V42M33 14.5V42M6 31H42"/><path d="M3 42H45"/>',
+ 'shopfront':'<path d="M6 14H42L39.5 7H8.5Z" fill="currentColor" fill-opacity=".3"/><path d="M6 14Q8.25 18 10.5 14Q12.75 18 15 14Q17.25 18 19.5 14Q21.75 18 24 14Q26.25 18 28.5 14Q30.75 18 33 14Q35.25 18 37.5 14Q39.75 18 42 14"/><path d="M8 18.5V42H40V18.5"/><rect x="11" y="22" width="16" height="13" rx="1"/><rect x="30" y="22" width="7" height="20" rx="1"/><path d="M4 42H44"/>',
+ 'glass-door':'<rect x="12" y="5" width="24" height="38" rx="2"/><rect x="15.5" y="8.5" width="17" height="31" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M29 19V28" stroke-width="3.4"/><path d="M19 15L23 11M19 20.5L26.5 13"/>',
+ 'door-int':'<rect x="12" y="5" width="24" height="38" rx="1.5"/><rect x="16" y="9" width="16" height="13" rx="1"/><rect x="16" y="26" width="16" height="13" rx="1"/><circle cx="31" cy="24" r="1.4" fill="currentColor"/><path d="M6 43H42"/>',
+ 'counter':'<rect x="9" y="9" width="5" height="11" rx="1.5"/><path d="M27 20Q27 13.5 33 13.5Q39 13.5 39 20"/><rect x="4" y="20" width="40" height="4.2" rx="1.5" fill="currentColor" fill-opacity=".3"/><path d="M6 24.2V42H42V24.2M24 24.2V42M20.5 29V33M27.5 29V33"/>',
+ 'hob':'<rect x="6" y="9" width="36" height="30" rx="4"/><circle cx="16" cy="19" r="5"/><circle cx="16" cy="19" r="2" fill="currentColor" fill-opacity=".3"/><circle cx="32" cy="19" r="4"/><circle cx="16" cy="31.5" r="3.6"/><circle cx="32" cy="31" r="5"/><circle cx="32" cy="31" r="2" fill="currentColor" fill-opacity=".3"/>',
+ 'oven':'<rect x="7" y="5" width="34" height="38" rx="3"/><circle cx="13" cy="10.5" r="1.7"/><circle cx="19" cy="10.5" r="1.7"/><rect x="27" y="8.5" width="9" height="4" rx="1"/><path d="M7 15.5H41"/><rect x="11" y="19" width="26" height="19" rx="2" fill="currentColor" fill-opacity=".3"/><path d="M15 23H33"/>',
+ 'fridge':'<rect x="11" y="4" width="26" height="40" rx="3.5"/><path d="M11 18H37"/><path d="M15.5 9V13.5M15.5 22.5V31" stroke-width="3"/>',
+ 'sink':'<path d="M4 24H44"/><path d="M8 24H40V27.5Q40 36 31.5 36H16.5Q8 36 8 27.5Z" fill="currentColor" fill-opacity=".3"/><circle cx="24" cy="30" r="1.3"/><path d="M24 24V12Q24 8 28 8H31Q34 8 34 11.5V13.5"/><path d="M19.5 16H24"/>',
+ 'basin':'<path d="M7 19H41Q41 32 24 32Q7 32 7 19Z" fill="currentColor" fill-opacity=".3"/><path d="M19.5 32L21 43H27L28.5 32"/><path d="M24 19V12.5H30"/><path d="M15 7H33" stroke-dasharray="0 3.4"/>',
+ 'shower':'<path d="M10 44V12Q10 6 16 6H22Q26 6 26 10V12"/><path d="M19 12H33L31 16.5H21Z" fill="currentColor" fill-opacity=".3"/><path d="M22 21.5V24M26 21.5V24M30 21.5V24M24 28.5V31M28 28.5V31M26 35V37.5"/><path d="M4 43H44"/>',
+ 'toilet':'<rect x="27" y="5" width="11" height="19" rx="2.6"/><path d="M30.5 9.5H34.5"/><path d="M7 24H38V26.5Q38 34 28 35.5L29 43H15L16 35Q7 32.5 7 26.5Z" fill="currentColor" fill-opacity=".3"/><path d="M7 24Q7 20.5 11 20.5H27"/>',
+ 'bed':'<path d="M5 11V41M43 30V41"/><path d="M5 30H43V36H5"/><rect x="8.5" y="22.5" width="10" height="6" rx="2.6"/><path d="M20.5 30V24Q20.5 21.5 23 21.5H40.5Q43 21.5 43 24V30" fill="currentColor" fill-opacity=".3"/>',
+ 'mirror':'<ellipse cx="24" cy="20" rx="12" ry="15.5"/><path d="M18 15L23 9.6M18.4 21.5L28.6 10.7"/><path d="M24 35.5V41M17.5 42H30.5"/>',
+ 'tiles':'<rect x="6" y="6" width="36" height="36" rx="2"/><path d="M18 6V42M30 6V42M6 18H42M6 30H42"/><rect x="18" y="18" width="12" height="12" fill="currentColor" fill-opacity=".3"/>',
+ 'mop':'<path d="M35 4L22.5 32"/><path d="M11 32H33L35 38H9Z" fill="currentColor" fill-opacity=".3"/><path d="M11.5 38V43M16.5 38V44M22 38V44.5M27.5 38V44M32.5 38V43"/>',
+ 'duster':'<path d="M37 44L28 25"/><ellipse cx="21.5" cy="14.5" rx="9" ry="11.5" transform="rotate(-25 21.5 14.5)" fill="currentColor" fill-opacity=".3"/><path d="M26.5 23.5L16.5 4.5M23 24.6L13 8.5M30 21.5L21.5 4"/>',
+ 'bin':'<path d="M7 12H41"/><path d="M19 12V8H29V12"/><path d="M10.5 12L13 42H35L37.5 12"/><path d="M19 18V36M24 18V36M29 18V36"/>',
+ 'desk':'<rect x="12" y="7" width="20" height="13" rx="1.6" fill="currentColor" fill-opacity=".3"/><path d="M22 20V25M17.5 25.2H26.5"/><path d="M4 26H44"/><path d="M7 26V42M41 26V42"/><rect x="29" y="26" width="12" height="8"/><path d="M33 30H37"/>',
+ 'meeting':'<rect x="11" y="14" width="26" height="20" rx="7" fill="currentColor" fill-opacity=".3"/><circle cx="18" cy="8" r="3"/><circle cx="30" cy="8" r="3"/><circle cx="18" cy="40" r="3"/><circle cx="30" cy="40" r="3"/><circle cx="5.5" cy="24" r="3"/><circle cx="42.5" cy="24" r="3"/>',
+ 'mug':'<path d="M9 15H31V32Q31 40 23 40H17Q9 40 9 32Z" fill="currentColor" fill-opacity=".3"/><path d="M31 19H34Q39 19 39 24Q39 29 34 29H31"/><path d="M15 10Q17 7.5 15 5M21 10Q23 7.5 21 5M27 10Q29 7.5 27 5"/><path d="M5 44H35"/>',
+ 'switch':'<rect x="5" y="9" width="17" height="30" rx="3"/><rect x="9.5" y="15" width="8" height="18" rx="1.5" fill="currentColor" fill-opacity=".3"/><rect x="25" y="13" width="18" height="22" rx="4"/><circle cx="34" cy="24" r="6.4"/><circle cx="31.4" cy="24" r="1.1" fill="currentColor"/><circle cx="36.6" cy="24" r="1.1" fill="currentColor"/>',
+ 'scraper':'<rect x="12" y="7" width="20" height="6.5" rx="1" fill="currentColor" fill-opacity=".3"/><path d="M16 13.5L19 20H25L28 13.5"/><rect x="18.5" y="20" width="7" height="22" rx="3"/><path d="M35 6L42 4.5L43 10L36.5 12Z"/>',
+ 'ladder':'<path d="M16 4L12 44M32 4L36 44"/><path d="M15.4 10H32.6M14.6 17H33.4M13.8 24H34.2M13 31H35M12.2 38H35.8"/>',
+ 'helmet':'<path d="M8 30Q8 12 24 12Q40 12 40 30"/><path d="M19.5 12.6V22.5H28.5V12.6"/><rect x="4" y="30" width="40" height="5" rx="2" fill="currentColor" fill-opacity=".3"/>',
+ 'keybox':'<path d="M11 8V5Q11 3 13 3H23Q25 3 25 5V8"/><rect x="7" y="8" width="22" height="30" rx="3"/><g fill="currentColor" stroke="none"><circle cx="13" cy="14.5" r="1.25"/><circle cx="18" cy="14.5" r="1.25"/><circle cx="23" cy="14.5" r="1.25"/><circle cx="13" cy="19.5" r="1.25"/><circle cx="18" cy="19.5" r="1.25"/><circle cx="23" cy="19.5" r="1.25"/><circle cx="13" cy="24.5" r="1.25"/><circle cx="18" cy="24.5" r="1.25"/><circle cx="23" cy="24.5" r="1.25"/></g><rect x="12" y="29.5" width="12" height="3.4" rx="1" fill="currentColor" fill-opacity=".3"/><circle cx="37" cy="27" r="4.2"/><path d="M37 31.2V43.5M37 37.5H40M37 41H39.5"/>'
 };
 function ico(n,c=''){if(ICONS48[n])return `<svg class="i i48 ${c}" viewBox="0 0 48 48" aria-hidden="true">${ICONS48[n]}</svg>`;const q=ICONS[n]||ICONS.star;return `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${q}</svg>`}
 const ICON_CHOICES=['star','search','wheel','spray','vacuum','sponge','drop','sparkles','headlight','key','paw','stain'];
@@ -359,6 +406,74 @@ const Z={
  't-brosse':{g:'Plans d’action',l:'Brossage',e:'brush',t:'La brosse qui fait mousser, en gros plan.'},
  't-extraction':{g:'Plans d’action',l:'Extraction',e:'drop',t:'Une bande faite, une bande pas : filme la ligne de contraste.'},
  't-eau':{g:'Plans d’action',l:'Eau sale récupérée',e:'bucket',t:'Le bac d’eau sale en gros plan : c’est le plan qui marque le plus.'},
+ /* Maison */
+ 'h-entree':{g:'Entrée',l:'Entrée',e:'door-int',t:'Depuis la porte d’entrée, en grand angle : sol, meubles et murs.'},
+ 'h-salon':{g:'Pièces de vie',l:'Salon',e:'sofa',t:'Depuis un angle de la pièce, en grand angle (0,5x).'},
+ 'h-chambre':{g:'Pièces de vie',l:'Chambre',e:'bed',t:'Depuis la porte : le lit et le sol dans le cadre.'},
+ 'h-plan':{g:'Cuisine',l:'Plan de travail',e:'counter',t:'Vue légèrement plongeante, tout le plan dans le cadre.'},
+ 'h-plaques':{g:'Cuisine',l:'Plaques de cuisson',e:'hob',t:'Vue de dessus, bien centrée : les traces se voient mieux en lumière rasante.'},
+ 'h-four':{g:'Cuisine',l:'Four',e:'oven',t:'Porte ouverte, gros plan sur l’intérieur et la vitre.'},
+ 'h-frigo':{g:'Cuisine',l:'Réfrigérateur',e:'fridge',t:'Porte grande ouverte, clayettes dans le cadre.'},
+ 'h-evier':{g:'Cuisine',l:'Évier',e:'sink',t:'Gros plan : cuve, robinet et joints.'},
+ 'h-lavabo':{g:'Salle de bain',l:'Lavabo',e:'basin',t:'Gros plan sur la vasque et le robinet : le calcaire doit se voir.'},
+ 'h-douche':{g:'Salle de bain',l:'Douche / baignoire',e:'shower',t:'De face, porte ou rideau ouvert : parois, joints et bonde.'},
+ 'h-wc':{g:'Salle de bain',l:'WC',e:'toilet',t:'Abattant levé, de trois quarts.'},
+ 'h-joints':{g:'Salle de bain',l:'Joints et carrelage',e:'tiles',t:'Très gros plan sur un joint, lumière de côté.'},
+ 'h-miroirs':{g:'Finitions',l:'Miroirs',e:'mirror',t:'De biais pour faire ressortir les traces, sans te refléter dedans.'},
+ 'h-sols':{g:'Finitions',l:'Sols',e:'mop',t:'Accroupi, téléphone près du sol : traces et reflets ressortent mieux.'},
+ 'hp-aspi':{g:'Plans d’action',l:'Aspiration',e:'vacuum',t:'Vidéo de 5 à 8 secondes, embout en gros plan.'},
+ 'hp-poussiere':{g:'Plans d’action',l:'Dépoussiérage',e:'duster',t:'Le chiffon qui passe sur une surface poussiéreuse, en gros plan.'},
+ 'hp-cuisine':{g:'Plans d’action',l:'Dégraissage cuisine',e:'spray',t:'Pulvérise, puis filme le passage de l’éponge sur la graisse.'},
+ 'hp-sdb':{g:'Plans d’action',l:'Détartrage salle de bain',e:'drop',t:'Le produit sur le calcaire, puis le rinçage.'},
+ 'hp-sols':{g:'Plans d’action',l:'Lavage des sols',e:'mop',t:'Une moitié lavée, une moitié pas : filme la ligne de contraste.'},
+ 'hp-poubelles':{g:'Plans d’action',l:'Poubelles',e:'bin',t:'Les sacs fermés et sortis : la touche finale.'},
+ /* Vitres */
+ 'v-facade':{g:'Vue d’ensemble',l:'Façade',e:'house',t:'Recule pour avoir toutes les fenêtres de la façade dans le cadre.'},
+ 'v-fenetre':{g:'Vitres',l:'Fenêtre',e:'window',t:'Gros plan, légèrement de biais : les traces ressortent à contre-jour.'},
+ 'v-baie':{g:'Vitres',l:'Baie vitrée',e:'bay',t:'De face, depuis l’intérieur : toute la baie dans le cadre.'},
+ 'v-veranda':{g:'Vitres',l:'Véranda',e:'veranda',t:'Depuis l’extérieur, en grand angle.'},
+ 'v-vitrine':{g:'Vitres',l:'Vitrine',e:'shopfront',t:'Depuis le trottoir, bien de face.'},
+ 'v-porte':{g:'Vitres',l:'Porte vitrée',e:'glass-door',t:'De face : poignée et traces de doigts visibles.'},
+ 'v-cadres':{g:'Détails',l:'Cadres et rebords',e:'frame',t:'Gros plan sur un angle du cadre et le rebord.'},
+ 'v-rails':{g:'Détails',l:'Rails',e:'rail',t:'Très gros plan dans le rail : c’est là que la saleté s’accumule.'},
+ 'vp-mouillage':{g:'Plans d’action',l:'Mouillage',e:'sponge',t:'Le mouilleur qui passe sur la vitre, en gros plan.'},
+ 'vp-raclette':{g:'Plans d’action',l:'Raclette',e:'squeegee',t:'Filme à travers la vitre : la bande propre qui apparaît.'},
+ 'vp-cadres':{g:'Plans d’action',l:'Essuyage des cadres',e:'spray',t:'La microfibre sur le cadre et le rebord.'},
+ 'vp-hauteur':{g:'Plans d’action',l:'Travail en hauteur',e:'ladder',t:'Plan large de la perche ou de l’escabeau en action.'},
+ /* Pro : bureaux */
+ 'b-accueil':{g:'Locaux',l:'Accueil',e:'door-int',t:'Depuis l’entrée, en grand angle.'},
+ 'b-bureaux':{g:'Locaux',l:'Bureaux',e:'desk',t:'Depuis la porte : bureaux, sols et corbeilles dans le cadre.'},
+ 'b-reunion':{g:'Locaux',l:'Salle de réunion',e:'meeting',t:'Depuis un angle : table, chaises et sol.'},
+ 'b-pause':{g:'Locaux',l:'Espace pause',e:'mug',t:'Plan de travail, évier et électroménager dans le cadre.'},
+ 'b-sanitaires':{g:'Sanitaires',l:'Sanitaires',e:'toilet',t:'Lavabos et cabines, en grand angle depuis la porte.'},
+ 'b-vitres':{g:'Finitions',l:'Vitres',e:'window',t:'Légèrement de biais pour faire ressortir les traces.'},
+ 'b-sols':{g:'Finitions',l:'Sols',e:'mop',t:'Téléphone près du sol : les reflets ressortent mieux.'},
+ 'b-poubelles':{g:'Finitions',l:'Poubelles',e:'bin',t:'Corbeilles vidées, sacs neufs.'},
+ /* Pro : fin de chantier */
+ 'f-ens':{g:'Vue d’ensemble',l:'Pièce entière',e:'helmet',t:'Depuis la porte, en grand angle (0,5x) : sol, murs et fenêtres.'},
+ 'f-sols':{g:'Sols',l:'Sols (plâtre, peinture)',e:'mop',t:'Gros plan sur les traces de plâtre ou de peinture.'},
+ 'f-vitres':{g:'Menuiseries',l:'Vitres (étiquettes, traces)',e:'window',t:'Gros plan sur les étiquettes et les traces de mastic.'},
+ 'f-portes':{g:'Menuiseries',l:'Portes et plinthes',e:'door-int',t:'De biais, le long des plinthes.'},
+ 'f-prises':{g:'Menuiseries',l:'Prises et interrupteurs',e:'switch',t:'Très gros plan : les traces de peinture se voient bien.'},
+ 'f-sanitaires':{g:'Pièces d’eau',l:'Sanitaires',e:'toilet',t:'Lavabo, WC et douche, avec les étiquettes encore collées.'},
+ 'f-cuisine':{g:'Pièces d’eau',l:'Cuisine',e:'counter',t:'Plan de travail et façades : la poussière de chantier doit se voir.'},
+ 'f-poussiere':{g:'Détails',l:'Poussière (gros plan)',e:'search',t:'Passe un doigt dans la poussière et filme-le : effet garanti.'},
+ 'bp-aspi':{g:'Plans d’action',l:'Aspiration',e:'vacuum',t:'Vidéo de 5 à 8 secondes, embout en gros plan.'},
+ 'bp-poussiere':{g:'Plans d’action',l:'Dépoussiérage',e:'duster',t:'Le chiffon sur un bureau ou une plinthe poussiéreuse.'},
+ 'bp-sanitaires':{g:'Plans d’action',l:'Désinfection sanitaires',e:'spray',t:'Pulvérise, puis filme le passage de la microfibre.'},
+ 'bp-sols':{g:'Plans d’action',l:'Lavage des sols',e:'mop',t:'Une moitié lavée, une moitié pas : filme la ligne de contraste.'},
+ 'fp-decapage':{g:'Plans d’action',l:'Décapage des sols',e:'brush',t:'La brosse ou la monobrosse sur une trace tenace.'},
+ 'fp-etiquettes':{g:'Plans d’action',l:'Retrait des étiquettes',e:'scraper',t:'Le grattoir qui décolle l’étiquette, en gros plan.'},
+ 'fp-dechets':{g:'Plans d’action',l:'Évacuation des déchets',e:'bin',t:'Les sacs et les gravats qui sortent de la pièce.'},
+ /* Airbnb / location saisonnière */
+ 'a-cles-prise':{g:'Arrivée autonome',l:'Prise des clés (boîte à clés)',e:'keybox',t:'Filme l’ouverture de la boîte et les clés à l’intérieur : c’est la preuve de ton arrivée. Ne filme pas le code.'},
+ 'a-etat':{g:'Arrivée autonome',l:'État du logement à l’arrivée',e:'search',t:'Fais le tour en vidéo dès l’entrée, avant de toucher à quoi que ce soit : ça te couvre en cas de litige.'},
+ 'a-degats':{g:'Arrivée autonome',l:'Dégâts ou objets oubliés',e:'stain',t:'Tout ce qui est cassé, taché ou oublié, en photo nette : c’est ta preuve pour l’hôte.'},
+ 'a-lit':{g:'Pièces de vie',l:'Lit et linge',e:'bed',t:'Depuis le pied du lit : draps, oreillers et serviettes pliées dans le cadre.'},
+ 'a-conso':{g:'Finitions',l:'Consommables',e:'basket',t:'Papier toilette, savon, café, sacs poubelle : tout ce qui a été réapprovisionné.'},
+ 'a-cles-repose':{g:'Départ',l:'Remise des clés dans la boîte',e:'keybox',t:'Filme les clés reposées, puis la boîte refermée et le code brouillé.'},
+ 'a-porte':{g:'Départ',l:'Porte fermée à clé',e:'door-int',t:'La porte d’entrée verrouillée, en dernier plan de la vidéo.'},
+ 'ap-linge':{g:'Plans d’action',l:'Changement du linge',e:'bed',t:'Les draps propres qu’on déplie sur le lit.'},
 };
 const AUTO_AB=['ext-av','ext-ar','int-large','cd-porte','cd-siege','cd-sol','cp-porte','cp-siege','cp-sol','ar-g-porte','ar-g-sol','banquette','ar-d-porte','ar-d-sol','coffre','tdb','volant','console','ciel','aeration'];
 const AUTO_PD=['p-aspi','p-sieges','p-moquette','p-eau','p-plastiques','p-montants','p-coffre','p-tapis','p-vitres','p-finition','p-ext','p-jantes'];
@@ -371,8 +486,27 @@ const TPL={
  'canape':{fam:'canape',l:'Canapé / fauteuil',d:'Textile à domicile',ab:['c-ens','c-34','c-assise','c-dossier','c-acc-g','c-acc-d','c-coussins','c-tache'],pd:TEX_PD},
  'matelas':{fam:'matelas',l:'Matelas',d:'Textile à domicile',ab:['m-ens','m-tete','m-pieds','m-bords','m-tache'],pd:TEX_PD},
  'tapis':{fam:'tapis',l:'Tapis',d:'Textile à domicile',ab:['r-ens','r-fibres','r-bords','r-tache'],pd:TEX_PD},
+ 'maison-complet':{act:'maison',fam:'maison',l:'Maison · Ménage complet',d:'Toutes les pièces',ab:['h-entree','h-salon','h-chambre','h-plan','h-plaques','h-evier','h-lavabo','h-douche','h-wc','h-miroirs','h-sols'],pd:['hp-aspi','hp-poussiere','hp-cuisine','hp-sdb','hp-sols','hp-poubelles']},
+ 'maison-cuisine':{act:'maison',fam:'maison',l:'Maison · Cuisine',d:'Cuisine à fond',ab:['h-plan','h-plaques','h-four','h-frigo','h-evier','h-sols'],pd:['hp-cuisine','hp-poussiere','hp-sols']},
+ 'maison-sdb':{act:'maison',fam:'maison',l:'Maison · Salle de bain',d:'Salle de bain et WC',ab:['h-lavabo','h-douche','h-wc','h-joints','h-miroirs','h-sols'],pd:['hp-sdb','hp-sols']},
+ 'airbnb-menage':{act:'airbnb',fam:'airbnb',l:'Airbnb · Ménage complet',d:'Entre deux voyageurs, arrivée autonome',av:['a-cles-prise','a-etat','a-degats'],ab:['h-entree','h-salon','a-lit','h-plan','h-evier','h-lavabo','h-douche','h-wc','a-conso','h-sols'],ap:['a-cles-repose','a-porte'],pd:['hp-aspi','ap-linge','hp-cuisine','hp-sdb','hp-sols','hp-poubelles']},
+ 'airbnb-rapide':{act:'airbnb',fam:'airbnb',l:'Airbnb · Rotation rapide',d:'Studio, petit logement',av:['a-cles-prise','a-etat'],ab:['a-lit','h-plan','h-lavabo','h-wc','a-conso','h-sols'],ap:['a-cles-repose'],pd:['ap-linge','hp-sols']},
+ 'vitres-maison':{act:'vitres',fam:'vitres',l:'Vitres · Particulier',d:'Fenêtres, baies, véranda',ab:['v-facade','v-fenetre','v-baie','v-veranda','v-cadres','v-rails'],pd:['vp-mouillage','vp-raclette','vp-cadres','vp-hauteur']},
+ 'vitres-commerce':{act:'vitres',fam:'vitres',l:'Vitres · Commerce',d:'Vitrine et porte d’entrée',ab:['v-vitrine','v-porte','v-fenetre','v-cadres'],pd:['vp-mouillage','vp-raclette','vp-cadres','vp-hauteur']},
+ 'pro-bureaux':{act:'pro',fam:'pro',l:'Pro · Bureaux',d:'Entretien de locaux',ab:['b-accueil','b-bureaux','b-reunion','b-pause','b-sanitaires','b-vitres','b-sols','b-poubelles'],pd:['bp-aspi','bp-poussiere','bp-sanitaires','bp-sols']},
+ 'pro-chantier':{act:'pro',fam:'pro',l:'Pro · Fin de chantier',d:'Après travaux',ab:['f-ens','f-sols','f-vitres','f-portes','f-prises','f-sanitaires','f-cuisine','f-poussiere'],pd:['bp-aspi','bp-poussiere','fp-decapage','fp-etiquettes','fp-dechets']},
 };
-const FAM={auto:{e:'car-side',a:'car-dirty',b:'car-clean'},canape:{e:'sofa',a:'sofa-dirty',b:'sofa-clean'},matelas:{e:'mattress',a:'mattress-dirty',b:'mattress-clean'},tapis:{e:'rug',a:'rug-dirty',b:'rug-clean'}};
+for(const t of Object.values(TPL))if(!t.act)t.act=t.fam==='auto'?'auto':'textiles';
+/* Les pages (barre du bas) */
+const ACT={
+ auto:{l:'Auto',e:'car-side',h:'Nettoyage <span>auto</span>',p:'Intérieur, extérieur ou express : chaque plan de la voiture, avant, pendant et après.'},
+ textiles:{l:'Textiles',e:'sofa',h:'<span>Textiles</span> à domicile',p:'Canapés, matelas et tapis : les taches avant, l’extraction pendant, le résultat après.'},
+ maison:{l:'Maison',e:'house',h:'Ménage <span>maison</span>',p:'Pièce par pièce : cuisine, salle de bain, chambres et sols.'},
+ airbnb:{l:'Airbnb',e:'keybox',h:'Ménage <span>Airbnb</span>',p:'Arrivée autonome, ménage entre deux voyageurs et remise des clés dans la boîte.'},
+ vitres:{l:'Vitres',e:'window',h:'Nettoyage des <span>vitres</span>',p:'Fenêtres, baies vitrées, vérandas et vitrines.'},
+ pro:{l:'Pro',e:'building',h:'Locaux <span>pros</span>',p:'Bureaux et fins de chantier : de quoi montrer ton travail à tes clients.'},
+};
+const FAM={auto:{e:'car-side',a:'car-dirty',b:'car-clean'},canape:{e:'sofa',a:'sofa-dirty',b:'sofa-clean'},matelas:{e:'mattress',a:'mattress-dirty',b:'mattress-clean'},tapis:{e:'rug',a:'rug-dirty',b:'rug-clean'},maison:{e:'house',a:'house-dirty',b:'house-clean'},vitres:{e:'window',a:'window-dirty',b:'window-clean'},pro:{e:'building',a:'building-dirty',b:'building-clean'},airbnb:{e:'keybox',a:'house-dirty',b:'house-clean'}};
 const PHASES=['avant','pendant','apres'];
 const PH={avant:'AVANT',pendant:'PENDANT',apres:'APRÈS'};
 
@@ -398,14 +532,16 @@ async function delSession(id){const ms=await getMedia(id);for(const m of ms)awai
 
 /* ---------- État ---------- */
 const $=s=>document.querySelector(s);
-let sess=null, media=[], phase='avant', cur=null, urls=[], idx=0;
+let sess=null, media=[], phase='avant', cur=null, urls=[], idx=0, curAct='auto';
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function customZones(){try{const a=JSON.parse(lsGet('zonesPerso','[]'));return Array.isArray(a)?a:[]}catch(e){return []}}
-const tpl=()=>TPL[sess&&sess.type]||TPL['auto-complet'];
+const tplOf=s=>TPL[s&&s.type]||TPL['auto-complet'];
+const tpl=()=>tplOf(sess);
 function zonesFor(ph){
  const t=tpl(),k=ph==='pendant'?'pd':'ab';
- return [...t[k].map(id=>({id,...Z[id]})),...customZones().filter(c=>(c.fam||'auto')===t.fam&&(c.ph||'ab')===k).map(z=>({...z,g:'Mes plans libres'}))]}
+ const ids=[...(ph==='avant'&&t.av||[]),...t[k],...(ph==='apres'&&t.ap||[])];
+ return [...ids.map(id=>({id,...Z[id]})),...customZones().filter(c=>(c.fam||'auto')===t.fam&&(c.ph||'ab')===k).map(z=>({...z,g:'Mes plans libres'}))]}
 const allZones=()=>zonesFor(phase);
 function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',2600)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -462,24 +598,32 @@ function storageHtml(appBytes,si){
  return `<div class="stor ${lvl}"><div class="row"><span>${ico('package')} Place utilisée par l’app</span><span class="sp"></span><b>${Math.round(r*100)||'<1'} %</b></div><div class="bar"><i style="width:${Math.max(2,Math.round(r*100))}%"></i></div><small>${txt}${lvl?'. Exporte tes anciens nettoyages puis supprime-les pour libérer de la place.':''}</small></div>`}
 
 /* ---------- Accueil : liste des nettoyages ---------- */
-async function home(){
+const actLow=k=>k==='airbnb'?'Airbnb':ACT[k].l.toLowerCase();
+function tabbar(){
+ return `<nav class="tabbar" aria-label="Activités">${Object.entries(ACT).map(([k,v])=>`<button data-act="${k}" class="${k===curAct?'on':''}" ${k===curAct?'aria-current="page"':''}>${ico(v.e)}<span>${v.l}</span></button>`).join('')}</nav>`}
+async function home(act){
+ if(act&&ACT[act]){curAct=act;lsSet('pb_act',act)}
  sess=null;revoke();
- const list=(await getSessions()).sort((a,b)=>b.ts-a.ts);
- let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo</span><h1>Ne rate plus aucun <span>plan</span></h1><p>Les bons plans de ton nettoyage, avant, pendant et après, pour un montage qui claque.</p></div>
- <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage</button></div>
- <h2>Nettoyages</h2>`;
- if(!list.length)h+=`<div class="hint">Aucun nettoyage pour l’instant. Crée-en un avant de commencer.</div>`;
+ const A=ACT[curAct];
+ const all=(await getSessions()).sort((a,b)=>b.ts-a.ts);
+ const list=all.filter(s=>tplOf(s).act===curAct);
+ let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo · ${A.l}</span><h1>${A.h}</h1><p>${A.p}</p></div>
+ <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button></div>
+ <h2>Nettoyages ${esc(actLow(curAct))}</h2>`;
+ if(!list.length)h+=`<div class="hint">Aucun nettoyage ${esc(actLow(curAct))} pour l’instant. Crée-en un avant de commencer.</div>`;
  let total=0;
- for(const s of list){
+ for(const s of all){
   const ms=await getMedia(s.id);const size=ms.reduce((a,m)=>a+(m.blob?m.blob.size:0),0);total+=size;
-  const t=TPL[s.type]||TPL['auto-complet'];
+  if(tplOf(s).act!==curAct)continue;
+  const t=tplOf(s);
   h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico(FAM[t.fam].e)}</div><div class="sp"><b>${esc(s.name)}</b><small>${esc(t.l)} · ${new Date(s.ts).toLocaleDateString('fr-FR')}<br>${ms.length} fichier(s)${size?' · '+fmtSize(size):''}</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
  h+=storageHtml(total,await storageInfo());
  h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
- <div class="links"><button id="how">Comment ça marche</button><button id="priv">Confidentialité</button></div>`;
- $('#app').innerHTML=h;
+ <div class="links"><button id="how">Comment ça marche</button><button id="priv">Confidentialité</button></div>`+tabbar();
+ $('#app').innerHTML=h;document.body.classList.add('has-tab');
  $('#new').onclick=newSession;bindTheme();
  $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;
+ document.querySelectorAll('.tabbar [data-act]').forEach(b=>b.onclick=()=>{if(b.dataset.act!==curAct){home(b.dataset.act);window.scrollTo(0,0)}});
  document.querySelectorAll('.sess').forEach(el=>el.onclick=async e=>{
   const del=e.target.closest('[data-del]');if(del){if(await askConfirm('Supprimer ce nettoyage et tous ses médias ?')){await delSession(del.dataset.del);home()}return}
   open_(el.dataset.id)});
@@ -487,7 +631,7 @@ async function home(){
 }
 function howDlg(first){
  return infoDlg(first?'Bienvenue sur Plans Brillance':'Comment ça marche',`<ol>
- <li><b>Crée un nettoyage</b> et choisis la prestation : auto, canapé, matelas ou tapis.</li>
+ <li><b>Choisis ton activité</b> dans la barre en bas : auto, textiles, maison, Airbnb, vitres ou pro. Puis crée un nettoyage et choisis la prestation.</li>
  <li><b>AVANT</b> : swipe de plan en plan et prends une photo ou une vidéo à chaque écran. Un conseil de cadrage t’aide sur chacun.</li>
  <li><b>PENDANT</b> (facultatif) : filme les plans d’action, comme l’aspiration ou l’eau sale.</li>
  <li><b>APRÈS</b> : l’app te remontre ta photo d’avant pour reprendre le même angle.</li>
@@ -503,17 +647,19 @@ function privDlg(){
  <li>Pour tout effacer : supprime tes nettoyages avec la corbeille, ou efface les données du site dans les réglages du navigateur.</li>
  </ul><p>Attention : si tu effaces les données du navigateur ou supprimes l’app, tes médias non exportés sont perdus.</p>`)}
 function newSession(){
- const d=$('#dlg');let type=lsGet('pb_type','auto-complet');if(!TPL[type])type='auto-complet';
- d.innerHTML=`<h3>Nouveau nettoyage</h3><input type="text" id="aq" maxlength="80" placeholder="Nom (ex : Clio 4 grise)">
+ const d=$('#dlg');const opts=Object.entries(TPL).filter(([k,t])=>t.act===curAct);
+ let type=lsGet('pb_type_'+curAct,'');if(!TPL[type]||TPL[type].act!==curAct)type=opts[0][0];
+ const ph={airbnb:'Studio rue de la République',auto:'Clio 4 grise',textiles:'Canapé d’angle gris',maison:'Appartement centre-ville',vitres:'Maison, 8 fenêtres',pro:'Bureaux, 2e étage'}[curAct];
+ d.innerHTML=`<h3>Nouveau nettoyage ${esc(actLow(curAct))}</h3><input type="text" id="aq" maxlength="80" placeholder="Nom (ex : ${esc(ph)})">
  <div class="lbl">Prestation</div>
- <div class="lst tpl">${Object.entries(TPL).map(([k,t])=>`<button data-t="${k}" class="${k===type?'on':''}">${ico(FAM[t.fam].e)}<span><b>${esc(t.l)}</b><small>${esc(t.d)} · ${t.ab.length} plans</small></span></button>`).join('')}</div>
+ <div class="lst tpl">${opts.map(([k,t])=>`<button data-t="${k}" class="${k===type?'on':''}">${ico(FAM[t.fam].e)}<span><b>${esc(t.l)}</b><small>${esc(t.d)} · ${t.ab.length+(t.av||[]).length+(t.ap||[]).length} plans</small></span></button>`).join('')}</div>
  <div class="row" style="margin-top:14px"><button class="sp" id="ac">Annuler</button><button class="sp primary" id="aok">Créer</button></div>`;
  d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{type=b.dataset.t;d.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x===b))});
  $('#ac').onclick=()=>d.close();
  $('#aok').onclick=async()=>{
   const name=$('#aq').value.trim();
   if(!name){$('#aq').focus();$('#aq').placeholder='Donne un nom à ce nettoyage';return}
-  lsSet('pb_type',type);
+  lsSet('pb_type_'+curAct,type);
   const s={id:crypto.randomUUID(),name:name.slice(0,80),ts:Date.now(),type,avantDone:false,pendantDone:false,apresDone:false};
   await putSession(s);d.close();open_(s.id)};
  $('#aq').onkeydown=e=>{if(e.key==='Enter')$('#aok').click()};
@@ -521,6 +667,7 @@ function newSession(){
 async function open_(id){
  sess=(await getSessions()).find(s=>s.id===id);
  if(!sess){home();return}
+ document.body.classList.remove('has-tab');curAct=tplOf(sess).act;lsSet('pb_act',curAct);
  media=await getMedia(id);hub()}
 
 /* ---------- Hub : AVANT / PENDANT / APRÈS ---------- */
@@ -598,7 +745,7 @@ function slideHtml(z){
  let ref='';
  if(phase==='apres'){
   const av=count(z.id,'avant').all.slice().sort((a,b)=>(a.type==='photo'?0:1)-(b.type==='photo'?0:1)||a.ts-b.ts).slice(0,3);
-  ref=av.length?`<div class="ref"><div class="rl">Ton avant · reprends le même angle</div><div class="tg">${av.map(m=>thumb(m,false)).join('')}</div></div>`
+  if(!(tpl().ap||[]).includes(z.id))ref=av.length?`<div class="ref"><div class="rl">Ton avant · reprends le même angle</div><div class="tg">${av.map(m=>thumb(m,false)).join('')}</div></div>`
    :`<div class="ref none">Pas de photo avant pour ce plan.</div>`}
  return `<div class="big">${ico(z.e)}</div>
  <h2 class="zn">${esc(z.l)}</h2><div class="zg">${esc(z.g)}</div>
@@ -826,7 +973,8 @@ async function makeZip(files){
  return new Blob([...parts,...central,e.buffer],{type:'application/zip'})}
 
 /* ---------- Démarrage ---------- */
-openDB().then(home);
+curAct=ACT[lsGet('pb_act','auto')]?lsGet('pb_act','auto'):'auto';
+openDB().then(()=>home());
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 </script>
