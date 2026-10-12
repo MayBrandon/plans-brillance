@@ -184,6 +184,10 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 dialog{overflow-y:auto}
 button[disabled]{opacity:.35}
 
+
+/* --- page Airbnb : mêmes couleurs que la page « locations saisonnières » du site --- */
+:root[data-brand="airbnb"]{--cyan:#FF5A5F;--on-accent:#ffffff}
+:root[data-theme="light"][data-brand="airbnb"]{--cyan:#D8343A;--on-accent:#ffffff}
 /* --- barre des activités (pied de page) --- */
 body.has-tab{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--ink);background:color-mix(in srgb,var(--ink) 78%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border-top:1px solid var(--line)}
@@ -598,12 +602,13 @@ function storageHtml(appBytes,si){
  return `<div class="stor ${lvl}"><div class="row"><span>${ico('package')} Place utilisée par l’app</span><span class="sp"></span><b>${Math.round(r*100)||'<1'} %</b></div><div class="bar"><i style="width:${Math.max(2,Math.round(r*100))}%"></i></div><small>${txt}${lvl?'. Exporte tes anciens nettoyages puis supprime-les pour libérer de la place.':''}</small></div>`}
 
 /* ---------- Accueil : liste des nettoyages ---------- */
+function setBrand(){if(curAct==='airbnb')document.documentElement.setAttribute('data-brand','airbnb');else document.documentElement.removeAttribute('data-brand')}
 const actLow=k=>k==='airbnb'?'Airbnb':ACT[k].l.toLowerCase();
 function tabbar(){
  return `<nav class="tabbar" aria-label="Activités">${Object.entries(ACT).map(([k,v])=>`<button data-act="${k}" class="${k===curAct?'on':''}" ${k===curAct?'aria-current="page"':''}>${ico(v.e)}<span>${v.l}</span></button>`).join('')}</nav>`}
 async function home(act){
  if(act&&ACT[act]){curAct=act;lsSet('pb_act',act)}
- sess=null;revoke();
+ sess=null;revoke();setBrand();
  const A=ACT[curAct];
  const all=(await getSessions()).sort((a,b)=>b.ts-a.ts);
  const list=all.filter(s=>tplOf(s).act===curAct);
@@ -667,7 +672,7 @@ function newSession(){
 async function open_(id){
  sess=(await getSessions()).find(s=>s.id===id);
  if(!sess){home();return}
- document.body.classList.remove('has-tab');curAct=tplOf(sess).act;lsSet('pb_act',curAct);
+ document.body.classList.remove('has-tab');curAct=tplOf(sess).act;lsSet('pb_act',curAct);setBrand();
  media=await getMedia(id);hub()}
 
 /* ---------- Hub : AVANT / PENDANT / APRÈS ---------- */
@@ -873,19 +878,19 @@ function baDlg(){
   if(st.logo){try{if(!cache.has('logo'))cache.set('logo',await loadImg('images/logo-ab.png'));lg=cache.get('logo')}catch(e){lg=null}}
   const cv=$('#bac');if(!cv||tok!==st.tok)return;
   const W=1080,H=BA_FMT[st.fmt].h;cv.width=W;cv.height=H;
-  const c=cv.getContext('2d');c.fillStyle='#0b0f14';c.fillRect(0,0,W,H);
+  const c=cv.getContext('2d');const ACC=curAct==='airbnb'?'#FF5A5F':ACC,ON=curAct==='airbnb'?'#ffffff':'#06110f';c.fillStyle='#0b0f14';c.fillRect(0,0,W,H);
   const top=st.fmt==='story'?230:36;
   if(st.lay==='v'){
    drawCover(c,ia,0,0,W,H/2);drawCover(c,ib,0,H/2,W,H/2);
-   c.fillStyle='#35e0c9';c.fillRect(0,H/2-4,W,8);
-   drawPill(c,'AVANT',36,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',36,H/2+40,'#35e0c9','#06110f');
+   c.fillStyle=ACC;c.fillRect(0,H/2-4,W,8);
+   drawPill(c,'AVANT',36,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',36,H/2+40,ACC,ON);
   }else{
    drawCover(c,ia,0,0,W/2,H);drawCover(c,ib,W/2,0,W/2,H);
-   c.fillStyle='#35e0c9';c.fillRect(W/2-4,0,8,H);
-   drawPill(c,'AVANT',30,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',W/2+34,top,'#35e0c9','#06110f')}
+   c.fillStyle=ACC;c.fillRect(W/2-4,0,8,H);
+   drawPill(c,'AVANT',30,top,'rgba(11,15,20,.82)','#eef3f6');drawPill(c,'APRÈS',W/2+34,top,ACC,ON)}
   if(lg){
    const cw=216,ch=156,x=W/2-cw/2,y=H/2-ch/2;
-   rrect(c,x,y,cw,ch,34);c.fillStyle='#0d1b2a';c.fill();c.lineWidth=6;c.strokeStyle='#35e0c9';c.stroke();
+   rrect(c,x,y,cw,ch,34);c.fillStyle='#0d1b2a';c.fill();c.lineWidth=6;c.strokeStyle=ACC;c.stroke();
    const lw=150,lh=lw*(lg.naturalHeight/lg.naturalWidth);c.drawImage(lg,W/2-lw/2,H/2-lh/2,lw,lh)}
   try{cv.toBlob(b=>{if(tok===st.tok)st.blob=b},'image/jpeg',.92)}catch(e){toast('Impossible de préparer l’image')}}
  d.querySelector('#baz').onclick=e=>{const b=e.target.closest('[data-z]');if(b){st.z=b.dataset.z;st.ia=st.ib=0;draw()}};
