@@ -19,10 +19,12 @@ const MT_STY={
  brut:{l:'Brut',e:'video',d:'Sans effet, son d’origine, comme sur le terrain',pd:2,vd:6,tr:'cut',td:0,zoom:0,mus:.25,orig:1,rate:1,txt:'tag'},
  edit:{l:'Édit',e:'sparkles',d:'Glissés, textes animés, vidéos accélérées',pd:1.6,vd:2.2,tr:'slide',td:.35,zoom:.05,mus:1,orig:0,rate:1.5,txt:'pop'},
  pov:{l:'Lunettes Meta',e:'eye',d:'Vue à la première personne : vidéos des lunettes, son d’origine, « POV »',pd:2,vd:8,tr:'fade',td:.25,zoom:.04,vz:1.06,mus:.35,orig:1,rate:1,txt:'pov',vidFirst:true},
+ etat:{l:'État des lieux',e:'search',d:'Teaser de l’avant : accroche, coupes nettes, zones numérotées, « le résultat dans la prochaine vidéo »',pd:1.8,vd:2.4,tr:'flash',td:.22,zoom:.16,vz:1.06,mus:1,orig:0,rate:1,txt:'etat',vidFirst:true,only:'avant'},
  ba:{l:'Avant/Après',e:'split',d:'Un rideau révèle l’après sur chaque plan',pd:2,vd:2,tr:'fade',td:.3,zoom:.03,mus:.9,orig:0,rate:1,txt:'soft',pair:true},
 };
 const MT_TIP={
  ba:'Avant/Après : une photo avant et une photo après du même plan sont réunies par un rideau ; les vidéos s’intercalent juste avant.',
+ etat:'État des lieux : seul l’AVANT est utilisé. Avec les lunettes, fais le tour de la voiture lentement et reste 3 secondes immobile sur chaque zone (sol conducteur, banquette, coffre, côté passager). Le premier plan sert d’accroche : mets-y le plus sale (désactive les autres plans si besoin). Publie ensuite l’après en « Avant/Après » pour la suite.',
  pov:'Lunettes Meta : importe les vidéos des lunettes sur chaque plan (bouton « Importer » pendant le nettoyage). Quand un plan a une vidéo, elle remplace ses photos ; le son d’origine est gardé et l’image est légèrement recadrée pour cacher l’effet grand-angle.'};
 const MT_PACE={lent:{l:'Lent',k:1.3},normal:{l:'Normal',k:1},rapide:{l:'Rapide',k:.75}};
 const MT_LEN={auto:{l:'Tout',s:0},15:{l:'15 s',s:15},30:{l:'30 s',s:30},60:{l:'60 s',s:60}};
@@ -105,7 +107,7 @@ function mtVidDur(m){return new Promise(res=>{
 /* ---------- Construction de la timeline ---------- */
 async function mtBuild(cfg,onProg,quick){
  const S=MT_STY[cfg.sty],k=MT_PACE[cfg.pace].k;
- let its=mtItems().filter(i=>!cfg.off[i.m.id]);
+ let its=mtItems().filter(i=>!cfg.off[i.m.id]&&(!S.only||i.ph===S.only));
  if(S.vidFirst){const hasV=new Set(its.filter(i=>i.m.type==='video').map(i=>i.ph+'|'+i.z.id));its=its.filter(i=>i.m.type==='video'||!hasV.has(i.ph+'|'+i.z.id))}
  const vids=its.filter(i=>i.m.type==='video'&&!MT_DUR.has(i.m.id));
  if(!quick){let n=0;for(const i of vids){if(onProg)onProg(`Analyse des vidéos ${++n}/${vids.length}`);MT_DUR.set(i.m.id,await mtVidDur(i.m))}}
@@ -130,7 +132,7 @@ async function mtBuild(cfg,onProg,quick){
    }else for(const i of zi){const s=clip(i);if(s)segs.push(s)}}
  }else for(const i of its){const s=clip(i);if(s)segs.push(s)}
  /* durée max : on resserre chaque plan proportionnellement */
- const io=cfg.io?{a:S.tr==='cut'?1.2:1.8,b:2.4}:{a:0,b:0};
+ const io=cfg.io?{a:S.txt==='etat'?0:S.tr==='cut'?1.2:1.8,b:S.txt==='etat'?3.1:2.4}:{a:0,b:0};
  const body=segs.reduce((a,s)=>a+s.dur,0),tgt=MT_LEN[cfg.len].s;
  if(tgt&&body>0&&body+io.a+io.b>tgt){
   const f=Math.max(.05,(tgt-io.a-io.b)/body);
@@ -138,6 +140,8 @@ async function mtBuild(cfg,onProg,quick){
  if(io.a)segs.unshift({k:'intro',dur:io.a});
  if(io.b)segs.push({k:'outro',dur:io.b});
  let t=0;for(const s of segs){s.s=t;t+=s.dur}
+ /* État des lieux : le 1er plan est l'accroche, les suivants sont numérotés 1/N… */
+ if(S.txt==='etat'){const ms=segs.filter(s=>s.k==='m');ms.forEach((s,j)=>{s.n=j;s.N=ms.length-1})}
  return {segs,total:t,n:its.length}}
 
 /* ---------- Sources (chargées au fur et à mesure pour ménager la mémoire du téléphone) ---------- */
@@ -255,6 +259,54 @@ function mtOutro(R,lt){
  const bw=260*u*mtEIO((lt-.4)/.8);c.fillStyle=R.acc;c.fillRect(W/2-bw/2,cy+222*u,bw,6*u);
  if(R.o2){c.font=`500 ${42*u}px ${MT_FONT}`;c.fillStyle='#9aa7b2';mtWrap(c,R.o2,W*.84,2).forEach((l,j)=>c.fillText(l,W/2,cy+300*u+j*54*u))}
  c.globalAlpha=ga}
+/* État des lieux : étiquette AVANT, accroche sur le 1er plan, zones numérotées sur les suivants */
+function mtEtat(R,s,lt){
+ const {c,u,W,H,cfg}=R,ga=c.globalAlpha;
+ if(cfg.tags)mtPill(c,'AVANT',W-48*u,R.mt,40*u,'rgba(11,15,20,.82)','#eef3f6','r');
+ if(!cfg.subs)return;
+ c.save();c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+ if(!s.n){
+  const out=s.dur-lt<.25?mtC((s.dur-lt)/.25):1,y=H*.42;
+  const k=1+1.2*(1-mtEO((lt-.15)/.35)),a=mtC((lt-.15)/.12)*out;
+  if(a>0){c.globalAlpha=ga*a;c.save();c.translate(W/2,y);c.scale(k,k);
+   c.font=`900 ${100*u}px ${MT_FONT}`;c.lineWidth=16*u;c.strokeStyle='rgba(0,0,0,.75)';c.fillStyle='#ffffff';
+   c.strokeText('ÉTAT DES LIEUX',0,0);c.fillText('ÉTAT DES LIEUX',0,0);c.restore()}
+  const w=mtEO((lt-.7)/.3);
+  if(w>0){c.globalAlpha=ga*out;c.font=`900 ${70*u}px ${MT_FONT}`;
+   const tw=c.measureText('AVANT NETTOYAGE').width+64*u,bh=96*u,yy=y+118*u;
+   rrect(c,W/2-tw/2,yy-bh/2,tw*w,bh,18*u);c.fillStyle=R.acc;c.fill();
+   c.save();c.beginPath();c.rect(W/2-tw/2,yy-bh/2,tw*w,bh);c.clip();c.fillStyle=R.on;c.fillText('AVANT NETTOYAGE',W/2,yy+3*u);c.restore()}}
+ else{
+  const a=mtEO((lt-.15)/.3)*(s.dur-lt<.15?mtC((s.dur-lt)/.15):1);
+  if(a>0){
+   c.globalAlpha=ga*a;const txt=String(R.cfg.txt[s.it.m.id]||s.it.z.l).toUpperCase(),num=s.n+'/'+s.N;
+   c.font=`900 ${44*u}px ${MT_FONT}`;const tw=c.measureText(txt).width;
+   c.font=`900 ${32*u}px ${MT_FONT}`;const nw=Math.max(84*u,c.measureText(num).width+32*u);
+   const h=94*u,w=18*u+nw+20*u+tw+36*u,x=48*u-(1-a)*80*u,y=H-R.mb-h;
+   rrect(c,x,y,w,h,h/2);c.fillStyle='rgba(13,27,42,.92)';c.fill();c.lineWidth=3*u;c.strokeStyle=mtRGBA(R.acc,.6);c.stroke();
+   rrect(c,x+18*u,y+16*u,nw,h-32*u,(h-32*u)/2);c.fillStyle=R.acc;c.fill();
+   c.fillStyle=R.on;c.fillText(num,x+18*u+nw/2,y+h/2+2*u);
+   c.textAlign='left';c.font=`900 ${44*u}px ${MT_FONT}`;c.fillStyle='#eef3f6';c.fillText(txt,x+18*u+nw+20*u,y+h/2+3*u)}}
+ c.restore()}
+function mtOutroEtat(R,lt){
+ const {c,u,W,H}=R,ga=c.globalAlpha;mtBg(R);
+ const cy=H/2-300*u;
+ c.globalAlpha=ga*mtEO(lt/.5);mtLogo(R,W/2,cy,.8+.2*mtBack(lt/.5));
+ c.textAlign='center';c.textBaseline='middle';
+ const k=1+1.2*(1-mtEO((lt-.3)/.35)),a=mtC((lt-.3)/.12);
+ if(a>0){c.globalAlpha=ga*a;c.save();c.translate(W/2,cy+210*u);c.scale(k,k);c.font=`900 ${104*u}px ${MT_FONT}`;c.fillStyle='#eef3f6';c.fillText('LE RÉSULTAT ?',0,0);c.restore()}
+ const w=mtEO((lt-.9)/.3);
+ if(w>0){c.globalAlpha=ga;c.font=`900 ${52*u}px ${MT_FONT}`;
+  const tw=c.measureText('DANS LA PROCHAINE VIDÉO').width+56*u,bh=80*u,yy=cy+330*u;
+  rrect(c,W/2-tw/2,yy-bh/2,tw*w,bh,16*u);c.fillStyle=R.acc;c.fill();
+  c.save();c.beginPath();c.rect(W/2-tw/2,yy-bh/2,tw*w,bh);c.clip();c.fillStyle=R.on;c.fillText('DANS LA PROCHAINE VIDÉO',W/2,yy+2*u);c.restore()}
+ const b=mtEO((lt-1.3)/.4);
+ if(b>0&&R.o2){c.globalAlpha=ga*b;c.font=`500 ${38*u}px ${MT_FONT}`;c.fillStyle='#9aa7b2';c.fillText(R.o2,W/2,cy+440*u+(1-b)*20*u)}
+ const d=mtBack((lt-1.5)/.45);
+ if(d>0&&R.site){c.globalAlpha=ga*mtC(d);c.save();c.translate(W/2,cy+590*u);const pz=1+.04*Math.sin(Math.max(0,lt-2)*6);c.scale(d*pz,d*pz);
+  c.font=`900 ${46*u}px ${MT_FONT}`;const tw=c.measureText(R.site).width+90*u,bh=112*u;
+  rrect(c,-tw/2,-bh/2,tw,bh,bh/2);c.fillStyle=R.acc;c.fill();c.fillStyle=R.on;c.fillText(R.site,0,3*u);c.restore()}
+ c.globalAlpha=ga}
 function mtPair(R,s,lt){
  const {c,u,W,H,S,cfg}=R,A=R.src.get(s.a.m.id),B=R.src.get(s.b.m.id);
  const t1=s.f1*s.dur,t2=s.f2*s.dur,pa=mtEIO((lt-t1)/(t2-t1)),z=1+S.zoom*(lt/s.dur);
@@ -272,18 +324,19 @@ function mtPair(R,s,lt){
 function mtSeg(R,s,lt,i){
  const {c,u,S}=R;c.save();
  if(s.k==='intro')mtIntro(R,lt);
- else if(s.k==='outro')mtOutro(R,lt);
+ else if(s.k==='outro')(S.txt==='etat'?mtOutroEtat:mtOutro)(R,lt);
  else if(s.k==='pair')mtPair(R,s,lt);
  else{
   let z=1,px=0,py=0;
-  if(!s.v){
+  if(S.txt==='etat'){const q=s.dur>.4?(lt-.4)/(s.dur-.4):1;z=lt<.4?1+S.zoom*(1-mtEO(lt/.4)):1+(S.vz-1)*mtC(q)}
+  else if(!s.v){
    if(S.tr==='flash')z=1+S.zoom*(1-mtEO(lt/.35));
    else{const q=s.dur?lt/s.dur:0;z=1+S.zoom*q;px=(i%2?1:-1)*(q-.5)*.5;py=(i%3-1)*(q-.5)*.3}}
   else if(S.tr==='flash')z=1+.06*(1-mtEO(lt/.3));
   else if(S.vz)z=S.vz;
-  if(S.tr==='flash'&&lt<.22){const a=(1-lt/.22)*22*u;c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
+  if(S.tr==='flash'&&S.txt!=='etat'&&lt<.22){const a=(1-lt/.22)*22*u;c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
   mtMedia(R,R.src.get(s.it.m.id),z,px,py);
-  mtTexts(R,s.it.ph,R.cfg.txt[s.it.m.id]||s.it.z.l,lt,s.dur)}
+  if(S.txt==='etat')mtEtat(R,s,lt);else mtTexts(R,s.it.ph,R.cfg.txt[s.it.m.id]||s.it.z.l,lt,s.dur)}
  c.restore()}
 function mtIdx(R,t){
  let i=Math.max(0,R.cur);const L=R.segs;
@@ -313,6 +366,7 @@ function mtMakeR(cfg,B){
  return {cv,c:cv.getContext('2d'),W,H,u,S:MT_STY[cfg.sty],cfg,fit:cfg.fit,
   acc:air?'#FF5A5F':'#35e0c9',on:air?'#ffffff':'#06110f',
   title:cfg.title||mtDefTitle(),sub:tplOf(sess).l,
+  site:lsGet('pb_mt_site',tplOf(sess).act==='auto'?'atelier-brillance-auto.fr':'atelier-brillance-services.fr'),
   o1:lsGet('pb_mt_o1','Atelier Brillance')||'Atelier Brillance',o2:lsGet('pb_mt_o2','Amiens et alentours'),
   mt:(story?260:56)*u,mb:(story?380:80)*u,segs:B.segs,total:B.total,src:new Map(),box:mtBox(),cur:-1,nodes:[]}}
 /* image fixe affichée avant de lancer l'aperçu */
