@@ -189,6 +189,33 @@ button[disabled]{opacity:.35}
 :root[data-brand="airbnb"]{--cyan:#FF5A5F;--on-accent:#ffffff}
 :root[data-theme="light"][data-brand="airbnb"]{--cyan:#D8343A;--on-accent:#ffffff}
 
+/* --- montage vidéo --- */
+.mt{padding:0 16px 40px}
+.mt .hint{margin:8px 0}
+.mtv{margin-top:14px;text-align:center}
+.mtv canvas{display:block;max-width:100%;max-height:50vh;width:auto;height:auto;margin:0 auto;border-radius:14px;border:1px solid var(--line);background:#000}
+.mtv .bar{max-width:420px;margin:10px auto 0}
+.mtst{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;color:var(--muted);min-height:1.3em;margin-top:6px}
+.mtgo{margin-top:12px}.mtgo button{padding:15px 8px}
+.mtlock{pointer-events:none;opacity:.5}
+.rng{display:block;font-size:.88rem;color:var(--muted);margin-top:12px}
+.rng b{float:right;color:var(--foam);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--cyan);margin:8px 0 0}
+.mt .chips button svg.i{margin-right:.3em}
+#mttg{flex-wrap:wrap}
+.mti{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;margin-bottom:8px;transition:opacity .2s}
+.mti.off{opacity:.4}
+.mtt{position:relative;flex:none;width:64px;height:64px}
+.mtt img,.mtt video{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#000;display:block}
+.mtt .pl{position:absolute;right:4px;bottom:2px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))}
+.mtx{min-width:0}
+.mtx small{display:block;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtx small.ph-avant{color:var(--cyan)}.mtx small.ph-apres{color:var(--amber)}
+.mtx input[type=text]{margin:4px 0 0;padding:8px 10px}
+.mti button.ic-only{padding:8px;flex:none}
+.mti button svg.i{margin:0;width:22px;height:22px}
+.mti:not(.off) button svg.i{color:var(--cyan)}
+
 /* --- rendez-vous de l'espace pro, réglages --- */
 .rdv{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:8px 16px;padding:12px;text-align:left;border-radius:var(--radius)}
 .rdv .rd{flex:none;width:84px;text-align:center;font-size:.78rem;color:var(--muted);line-height:1.25}
@@ -234,6 +261,10 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 /* ---------- Icônes vectorielles (traits fins, couleur = couleur du texte) ---------- */
 const ICONS={
  'search':'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+ 'film':'<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M7.5 4v16M16.5 4v16M3.5 8.5h4M3.5 15.5h4M16.5 8.5h4M16.5 15.5h4"/>',
+ 'music':'<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
+ 'split':'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 3v18M8 10l-2 2 2 2M16 10l2 2-2 2"/>',
+ 'stop':'<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor"/>',
  'sponge':'<rect x="4" y="9" width="16" height="9.5" rx="2.5"/><circle cx="8" cy="15" r=".7"/><circle cx="12.5" cy="12.8" r=".7"/><circle cx="16" cy="15.6" r=".7"/><circle cx="8" cy="5.5" r="1.2"/><circle cx="13.5" cy="4.5" r="1.6"/>',
  'sparkles':'<path d="M11 3.5l1.8 5.2L18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
  'camera':'<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.2-2h5.6L16 7h2.5A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.3"/>',
@@ -535,11 +566,13 @@ const PH={avant:'AVANT',pendant:'PENDANT',apres:'APRÈS'};
 /* ---------- IndexedDB ---------- */
 let db;
 function openDB(){return new Promise((res,rej)=>{
- const r=indexedDB.open('plans-brillance',1);
+ const r=indexedDB.open('plans-brillance',2);
  r.onupgradeneeded=()=>{const d=r.result;
-  d.createObjectStore('sessions',{keyPath:'id'});
-  const m=d.createObjectStore('media',{keyPath:'id'});m.createIndex('sid','sid');};
- r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)})}
+  if(!d.objectStoreNames.contains('sessions'))d.createObjectStore('sessions',{keyPath:'id'});
+  if(!d.objectStoreNames.contains('media')){const m=d.createObjectStore('media',{keyPath:'id'});m.createIndex('sid','sid')}
+  if(!d.objectStoreNames.contains('music'))d.createObjectStore('music',{keyPath:'id'});};
+ r.onblocked=()=>toast('Ferme les autres onglets Plans Brillance pour terminer la mise à jour');
+ r.onsuccess=()=>{db=r.result;db.onversionchange=()=>{db.close();toast('Nouvelle version : recharge la page')};res()};r.onerror=()=>rej(r.error)})}
 const tx=(s,mode='readonly')=>db.transaction(s,mode).objectStore(s);
 const p=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const getSessions=()=>p(tx('sessions').getAll());
@@ -661,6 +694,7 @@ function howDlg(first){
  <li><b>PENDANT</b> (facultatif) : filme les plans d’action, comme l’aspiration ou l’eau sale.</li>
  <li><b>APRÈS</b> : l’app te remontre ta photo d’avant pour reprendre le même angle.</li>
  <li><b>Exporte</b> : les fichiers sortent nommés dans l’ordre, prêts pour le montage. Tu peux aussi créer une image avant/après à poster.</li>
+ <li><b>Monte</b> : « Créer une vidéo » assemble tes plans dans l’ordre avec le style de ton choix (doux, dur, brut, édit, avant/après), ta musique et des sous-titres, en story, post 4:5 ou carré.</li>
  </ol><p>Pour l’utiliser comme une vraie app : dans Safari, Partager puis « Sur l’écran d’accueil ».</p>`,first?'C’est parti':'Fermer')}
 function privDlg(){
  return infoDlg('Confidentialité',`<ul>
@@ -670,6 +704,7 @@ function privDlg(){
  <li>L’appareil photo n’est utilisé que lorsque tu touches Photo ou Vidéo.</li>
  <li>Si tu te connectes à un espace pro (équipe Atelier Brillance), l’app lit tes rendez-vous confirmés et coche la case « Photos prises » : aucune photo ni vidéo n’est envoyée.</li>
  <li>Les photos sont compressées sur l’appareil (réglable dans Réglages) ; les vidéos ne sont pas modifiées.</li>
+ <li>Le montage vidéo est calculé sur l’appareil : tes photos, vidéos et musiques ne sont jamais envoyées.</li>
  <li>Comme pour tout site, l’hébergeur (Netlify) reçoit l’adresse IP de ton appareil au chargement des pages.</li>
  <li>Pour tout effacer : supprime tes nettoyages avec la corbeille, ou efface les données du site dans les réglages du navigateur.</li>
  </ul><p>Attention : si tu effaces les données du navigateur ou supprimes l’app, tes médias non exportés sont perdus.</p>`)}
@@ -711,6 +746,7 @@ function hub(){
  ${linkLine(sess)}
  <div class="hint" style="text-align:center"><b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
+ if(media.length)h+=`<div class="wrap" style="margin-top:10px"><button id="mtb" style="width:100%;padding:16px">${ico('film')} Créer une vidéo (montage auto)</button></div>`;
  if(baZones().length)h+=`<div class="wrap" style="margin-top:10px"><button id="ba" style="width:100%;padding:16px">${ico('sparkles')} Créer un avant/après à poster</button></div>`;
  else if(sess.avantDone)h+=`<div class="hint" style="text-align:center">Dès qu’un plan a une photo avant et une photo après, tu pourras créer une image avant/après à poster.</div>`;
  $('#app').innerHTML=h;
@@ -722,6 +758,7 @@ function hub(){
  $('#sqB').onclick=()=>{if(!locked())startFlow('apres')};
  const e=$('#exp');if(e)e.onclick=exportDlg;
  const b=$('#ba');if(b)b.onclick=baDlg;
+ const mb=$('#mtb');if(mb)mb.onclick=()=>{if(typeof mtOpen==='function')mtOpen();else toast('Montage indisponible : recharge l’app')};
 }
 
 /* ---------- Parcours en swipe ---------- */
@@ -905,7 +942,7 @@ function baDlg(){
   if(st.logo){try{if(!cache.has('logo'))cache.set('logo',await loadImg('images/logo-ab.png'));lg=cache.get('logo')}catch(e){lg=null}}
   const cv=$('#bac');if(!cv||tok!==st.tok)return;
   const W=1080,H=BA_FMT[st.fmt].h;cv.width=W;cv.height=H;
-  const c=cv.getContext('2d');const ACC=curAct==='airbnb'?'#FF5A5F':ACC,ON=curAct==='airbnb'?'#ffffff':'#06110f';c.fillStyle='#0b0f14';c.fillRect(0,0,W,H);
+  const c=cv.getContext('2d');const ACC=curAct==='airbnb'?'#FF5A5F':'#35e0c9',ON=curAct==='airbnb'?'#ffffff':'#06110f';c.fillStyle='#0b0f14';c.fillRect(0,0,W,H);
   const top=st.fmt==='story'?230:36;
   if(st.lay==='v'){
    drawCover(c,ia,0,0,W,H/2);drawCover(c,ib,0,H/2,W,H/2);
@@ -1161,5 +1198,6 @@ openDB().then(()=>home());
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 </script>
+<script src="montage.js"></script>
 </body>
 </html>
