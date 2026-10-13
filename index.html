@@ -264,6 +264,7 @@ const ICONS={
  'film':'<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M7.5 4v16M16.5 4v16M3.5 8.5h4M3.5 15.5h4M16.5 8.5h4M16.5 15.5h4"/>',
  'music':'<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
  'split':'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 3v18M8 10l-2 2 2 2M16 10l2 2-2 2"/>',
+ 'eye':'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
  'stop':'<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor"/>',
  'sponge':'<rect x="4" y="9" width="16" height="9.5" rx="2.5"/><circle cx="8" cy="15" r=".7"/><circle cx="12.5" cy="12.8" r=".7"/><circle cx="16" cy="15.6" r=".7"/><circle cx="8" cy="5.5" r="1.2"/><circle cx="13.5" cy="4.5" r="1.6"/>',
  'sparkles':'<path d="M11 3.5l1.8 5.2L18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
@@ -664,7 +665,8 @@ async function home(act){
  const all=(await getSessions()).sort((a,b)=>b.ts-a.ts);
  const list=all.filter(s=>tplOf(s).act===curAct);
  let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo · ${A.l}</span><h1>${A.h}</h1><p>${A.p}</p></div>
- <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button></div>
+ <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button>
+ <button style="width:100%;padding:16px;margin-top:10px" id="mth">${ico('film')} Montage vidéo</button></div>
  <div id="rdv"></div>
  <h2>Nettoyages ${esc(actLow(curAct))}</h2>`;
  if(!list.length)h+=`<div class="hint">Aucun nettoyage ${esc(actLow(curAct))} pour l’instant. Crée-en un avant de commencer.</div>`;
@@ -679,6 +681,7 @@ async function home(act){
  <div class="links"><button id="how">Comment ça marche</button><button id="set">Réglages</button><button id="priv">Confidentialité</button></div>`+tabbar();
  $('#app').innerHTML=h;document.body.classList.add('has-tab');
  $('#new').onclick=newSession;bindTheme();
+ $('#mth').onclick=()=>{if(typeof mtPick==='function')mtPick();else toast('Montage indisponible : recharge l’app')};
  $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;$('#set').onclick=settingsDlg;
  renderRdv();syncPending();
  document.querySelectorAll('.tabbar [data-act]').forEach(b=>b.onclick=()=>{if(b.dataset.act!==curAct){home(b.dataset.act);window.scrollTo(0,0)}});
@@ -694,7 +697,7 @@ function howDlg(first){
  <li><b>PENDANT</b> (facultatif) : filme les plans d’action, comme l’aspiration ou l’eau sale.</li>
  <li><b>APRÈS</b> : l’app te remontre ta photo d’avant pour reprendre le même angle.</li>
  <li><b>Exporte</b> : les fichiers sortent nommés dans l’ordre, prêts pour le montage. Tu peux aussi créer une image avant/après à poster.</li>
- <li><b>Monte</b> : « Créer une vidéo » assemble tes plans dans l’ordre avec le style de ton choix (doux, dur, brut, édit, avant/après), ta musique et des sous-titres, en story, post 4:5 ou carré.</li>
+ <li><b>Monte</b> : « Créer une vidéo » assemble tes plans dans l’ordre avec le style de ton choix (doux, dur, brut, édit, avant/après, lunettes Meta), ta musique et des sous-titres, en story, post 4:5 ou carré.</li>
  </ol><p>Pour l’utiliser comme une vraie app : dans Safari, Partager puis « Sur l’écran d’accueil ».</p>`,first?'C’est parti':'Fermer')}
 function privDlg(){
  return infoDlg('Confidentialité',`<ul>
@@ -746,7 +749,7 @@ function hub(){
  ${linkLine(sess)}
  <div class="hint" style="text-align:center"><b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
- if(media.length)h+=`<div class="wrap" style="margin-top:10px"><button id="mtb" style="width:100%;padding:16px">${ico('film')} Créer une vidéo (montage auto)</button></div>`;
+ h+=`<div class="wrap" style="margin-top:10px"><button id="mtb" style="width:100%;padding:16px">${ico('film')} Créer une vidéo (montage auto)</button></div>`;
  if(baZones().length)h+=`<div class="wrap" style="margin-top:10px"><button id="ba" style="width:100%;padding:16px">${ico('sparkles')} Créer un avant/après à poster</button></div>`;
  else if(sess.avantDone)h+=`<div class="hint" style="text-align:center">Dès qu’un plan a une photo avant et une photo après, tu pourras créer une image avant/après à poster.</div>`;
  $('#app').innerHTML=h;
@@ -758,7 +761,7 @@ function hub(){
  $('#sqB').onclick=()=>{if(!locked())startFlow('apres')};
  const e=$('#exp');if(e)e.onclick=exportDlg;
  const b=$('#ba');if(b)b.onclick=baDlg;
- const mb=$('#mtb');if(mb)mb.onclick=()=>{if(typeof mtOpen==='function')mtOpen();else toast('Montage indisponible : recharge l’app')};
+ const mb=$('#mtb');if(mb)mb.onclick=()=>{if(!media.length)toast('Prends d’abord des photos ou vidéos pour ce nettoyage');else if(typeof mtOpen==='function')mtOpen();else toast('Montage indisponible : recharge l’app')};
 }
 
 /* ---------- Parcours en swipe ---------- */

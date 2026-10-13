@@ -18,8 +18,12 @@ const MT_STY={
  dur:{l:'Dur',e:'star',d:'Coupes rapides, flashs et secousses',pd:1,vd:1.6,tr:'flash',td:.18,zoom:.12,mus:1,orig:0,rate:1,txt:'big'},
  brut:{l:'Brut',e:'video',d:'Sans effet, son d’origine, comme sur le terrain',pd:2,vd:6,tr:'cut',td:0,zoom:0,mus:.25,orig:1,rate:1,txt:'tag'},
  edit:{l:'Édit',e:'sparkles',d:'Glissés, textes animés, vidéos accélérées',pd:1.6,vd:2.2,tr:'slide',td:.35,zoom:.05,mus:1,orig:0,rate:1.5,txt:'pop'},
+ pov:{l:'Lunettes Meta',e:'eye',d:'Vue à la première personne : vidéos des lunettes, son d’origine, « POV »',pd:2,vd:8,tr:'fade',td:.25,zoom:.04,vz:1.06,mus:.35,orig:1,rate:1,txt:'pov',vidFirst:true},
  ba:{l:'Avant/Après',e:'split',d:'Un rideau révèle l’après sur chaque plan',pd:2,vd:2,tr:'fade',td:.3,zoom:.03,mus:.9,orig:0,rate:1,txt:'soft',pair:true},
 };
+const MT_TIP={
+ ba:'Avant/Après : une photo avant et une photo après du même plan sont réunies par un rideau ; les vidéos s’intercalent juste avant.',
+ pov:'Lunettes Meta : importe les vidéos des lunettes sur chaque plan (bouton « Importer » pendant le nettoyage). Quand un plan a une vidéo, elle remplace ses photos ; le son d’origine est gardé et l’image est légèrement recadrée pour cacher l’effet grand-angle.'};
 const MT_PACE={lent:{l:'Lent',k:1.3},normal:{l:'Normal',k:1},rapide:{l:'Rapide',k:.75}};
 const MT_LEN={auto:{l:'Tout',s:0},15:{l:'15 s',s:15},30:{l:'30 s',s:30},60:{l:'60 s',s:60}};
 const MT_FIT={cover:{l:'Plein écran'},contain:{l:'Image entière'}};
@@ -101,7 +105,8 @@ function mtVidDur(m){return new Promise(res=>{
 /* ---------- Construction de la timeline ---------- */
 async function mtBuild(cfg,onProg,quick){
  const S=MT_STY[cfg.sty],k=MT_PACE[cfg.pace].k;
- const its=mtItems().filter(i=>!cfg.off[i.m.id]);
+ let its=mtItems().filter(i=>!cfg.off[i.m.id]);
+ if(S.vidFirst){const hasV=new Set(its.filter(i=>i.m.type==='video').map(i=>i.ph+'|'+i.z.id));its=its.filter(i=>i.m.type==='video'||!hasV.has(i.ph+'|'+i.z.id))}
  const vids=its.filter(i=>i.m.type==='video'&&!MT_DUR.has(i.m.id));
  if(!quick){let n=0;for(const i of vids){if(onProg)onProg(`Analyse des vidéos ${++n}/${vids.length}`);MT_DUR.set(i.m.id,await mtVidDur(i.m))}}
  const clip=i=>{
@@ -187,6 +192,12 @@ function mtSubs(R,txt,lt,dur,sty){
   const lines=mtWrap(c,txt.toUpperCase(),W*.86,2);
   c.translate(W/2,H*.7);c.scale(k,k);c.lineWidth=14*u;c.strokeStyle='rgba(0,0,0,.85)';c.fillStyle='#fff';
   lines.forEach((l,j)=>{const y=(j-(lines.length-1)/2)*96*u;c.strokeText(l,0,y);c.fillText(l,0,y)})}
+ else if(sty==='pov'){
+  const a=mtEO(lt/.4);if(a<=0){c.restore();return}
+  c.globalAlpha*=a;c.font=`800 ${62*u}px ${MT_FONT}`;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  const lines=mtWrap(c,'POV : '+txt.charAt(0).toLowerCase()+txt.slice(1),W*.84,2),lh=76*u,y0=R.mt+150*u;
+  c.lineWidth=12*u;c.strokeStyle='rgba(0,0,0,.9)';c.fillStyle='#fff';
+  lines.forEach((l,j)=>{c.strokeText(l,W/2,y0+j*lh);c.fillText(l,W/2,y0+j*lh)})}
  else if(sty==='pop'){
   const k=mtBack(lt/.35);if(k<=0){c.restore();return}
   c.font=`800 ${58*u}px ${MT_FONT}`;
@@ -214,7 +225,7 @@ function mtTexts(R,ph,txt,lt,dur){
   if(parts.length)mtPill(c,parts.join(' · '),48*u,R.mt,36*u,'rgba(11,15,20,.78)','#eef3f6');
   return}
  if(cfg.tags){
-  const a=S.txt==='pop'?mtBack(lt/.3):S.txt==='soft'?mtEO(lt/.5):1;
+  const a=S.txt==='pop'?mtBack(lt/.3):S.txt==='soft'||S.txt==='pov'?mtEO(lt/.5):1;
   c.globalAlpha=ga*mtC(a);const [bg,fg]=mtBadge(R,ph);mtPill(c,PH[ph],48*u,R.mt,40*u,bg,fg);c.globalAlpha=ga}
  if(cfg.subs)mtSubs(R,txt,lt,dur,S.txt)}
 function mtBg(R){
@@ -269,6 +280,7 @@ function mtSeg(R,s,lt,i){
    if(S.tr==='flash')z=1+S.zoom*(1-mtEO(lt/.35));
    else{const q=s.dur?lt/s.dur:0;z=1+S.zoom*q;px=(i%2?1:-1)*(q-.5)*.5;py=(i%3-1)*(q-.5)*.3}}
   else if(S.tr==='flash')z=1+.06*(1-mtEO(lt/.3));
+  else if(S.vz)z=S.vz;
   if(S.tr==='flash'&&lt<.22){const a=(1-lt/.22)*22*u;c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
   mtMedia(R,R.src.get(s.it.m.id),z,px,py);
   mtTexts(R,s.it.ph,R.cfg.txt[s.it.m.id]||s.it.z.l,lt,s.dur)}
@@ -467,7 +479,7 @@ function mtStyUI(){
  el.onclick=e=>{const b=e.target.closest('[data-v]');if(!b||MT.busy)return;
   cfg.sty=b.dataset.v;cfg.vm=null;cfg.vo=null;lsSet('pb_mt_sty',cfg.sty);mtSave();
   el.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x===b));
-  const n=$('#mtban');if(n)n.style.display=cfg.sty==='ba'?'':'none';
+  const n=$('#mtban');if(n){n.style.display=MT_TIP[cfg.sty]?'':'none';n.textContent=MT_TIP[cfg.sty]||''}
   mtMusUI();mtEst()}}
 function mtMusUI(){
  const el=$('#mtmus');if(!el)return;
@@ -531,7 +543,7 @@ async function mtOpen(){
   <div class="row mtgo"><button class="sp" id="mtpv">${ico('play')} Aperçu</button><button class="sp primary" id="mtgo">${ico('film')} Créer la vidéo</button></div>
   <div class="hint" id="mtest"></div>
   <div class="lbl">Style de montage</div><div class="lst tpl" id="mtsty"></div>
-  <div class="hint" id="mtban" style="${cfg.sty==='ba'?'':'display:none'}">Avant/Après : une photo avant et une photo après du même plan sont réunies par un rideau ; les vidéos s’intercalent juste avant.</div>
+  <div class="hint" id="mtban" style="${MT_TIP[cfg.sty]?'':'display:none'}">${esc(MT_TIP[cfg.sty]||'')}</div>
   <div class="lbl">Format</div><div class="seg" id="mtfmt"></div>
   <div class="lbl">Rythme</div><div class="seg" id="mtpace"></div>
   <div class="lbl">Durée max</div><div class="seg" id="mtlen"></div>
@@ -558,3 +570,14 @@ async function mtOpen(){
  for(const i of mtItems())if(i.m.type==='video'&&!MT_DUR.has(i.m.id)){
   MT_DUR.set(i.m.id,await mtVidDur(i.m));if(open!==MT.open)return}
  if(open===MT.open)mtEst()}
+
+/* ---------- Depuis l'accueil : choisir le nettoyage à monter ---------- */
+async function mtPick(){
+ const all=(await getSessions()).filter(s=>tplOf(s).act===curAct).sort((a,b)=>b.ts-a.ts),rows=[];
+ for(const s of all){const ms=await getMedia(s.id);if(ms.length)rows.push({s,n:ms.length,v:ms.filter(m=>m.type==='video').length})}
+ const d=$('#dlg');
+ d.innerHTML=`<h3>Montage vidéo · ${esc(ACT[curAct].l)}</h3>${rows.length?`<p class="small-hint">Choisis le nettoyage à monter.</p><div class="lst">${rows.map(r=>`<button data-s="${esc(r.s.id)}">${ico(FAM[tplOf(r.s).fam].e)}<span><b>${esc(r.s.name)}</b><small style="display:block;color:var(--muted);font-size:.78rem">${new Date(r.s.ts).toLocaleDateString('fr-FR')} · ${r.n} média(s)${r.v?' dont '+r.v+' vidéo(s)':''}</small></span></button>`).join('')}</div>`
+  :`<p class="small-hint">Aucun nettoyage ${esc(actLow(curAct))} avec des photos ou vidéos. Crée un nettoyage et prends tes plans (ou importe les vidéos des lunettes), puis reviens ici.</p>`}
+ <button id="cl" style="width:100%;margin-top:10px">Fermer</button>`;
+ d.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{d.close();await open_(b.dataset.s);mtOpen()});
+ $('#cl').onclick=()=>d.close();d.showModal()}
