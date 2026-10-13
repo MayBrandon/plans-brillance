@@ -95,7 +95,7 @@ const mtDefTitle=()=>ACT[tplOf(sess).act].h.replace(/<[^>]*>/g,'');
 function mtItems(){
  const out=[];
  for(const ph of PHASES)for(const z of zonesFor(ph))
-  media.filter(m=>m.zone===z.id&&m.phase===ph).sort((a,b)=>a.ts-b.ts).forEach(m=>out.push({m,z,ph}));
+  media.filter(m=>m.zone===z.id&&m.phase===ph).concat(typeof rsItems==='function'?rsItems(z.id,ph):[]).sort((a,b)=>a.ts-b.ts).forEach(m=>out.push({m,z,ph}));
  return out}
 
 function mtVidDur(m){return new Promise(res=>{
@@ -120,7 +120,7 @@ async function mtBuild(cfg,onProg,quick){
   const ad=AI&&AI.dur[i.m.id];
   if(i.m.type==='video'){
    const vd=MT_DUR.has(i.m.id)?MT_DUR.get(i.m.id):S.vd*k*S.rate;if(!vd)return null;
-   return {k:'m',it:i,v:true,rate:S.rate,dur:Math.min(ad||S.vd*k,vd/S.rate)}}
+   return {k:'m',it:i,v:true,rate:S.rate,dur:Math.min(ad||(i.m.cut?vd:S.vd*k),vd/S.rate)}}
   return {k:'m',it:i,v:false,dur:ad||S.pd*k}};
  const segs=[];
  if(S.pair&&!AI){
@@ -168,7 +168,7 @@ function mtSrc(R,m){
    v.preload='auto';v.style.cssText='width:2px;height:2px';o.el=v;R.box.appendChild(v);
    let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(to);o.ok=true;res()};
    const to=setTimeout(fin,12000);
-   v.onloadedmetadata=()=>{v.onseeked=()=>{v.onseeked=null;fin()};try{v.currentTime=.05}catch(e){fin()}};
+   v.onloadedmetadata=()=>{v.onseeked=()=>{v.onseeked=null;fin()};try{v.currentTime=(m.a||0)+.05}catch(e){fin()}};
    v.onerror=()=>{clearTimeout(to);res()};
    v.src=o.u;v.load()}});
  R.src.set(m.id,o);return o.p}
@@ -461,7 +461,7 @@ async function mtRun(rec){
  if(ctx&&cfg.mus&&vm>0){mtStatus('Chargement de la musique…');mus=await mtMusicBuf(ctx,cfg.mus);if(!alive())return}
  if(ctx&&vo>0){
   const vs=B.segs.filter(s=>s.k==='m'&&s.v);let n=0;
-  for(const s of vs){mtStatus(`Son des vidéos ${++n}/${vs.length}`);if(!MT_AB.has(s.it.m.id))MT_AB.set(s.it.m.id,await mtDecode(ctx,s.it.m.blob));if(!alive())return}}
+  for(const s of vs){mtStatus(`Son des vidéos ${++n}/${vs.length}`);const ak=s.it.m.src||s.it.m.id;if(!MT_AB.has(ak))MT_AB.set(ak,await mtDecode(ctx,s.it.m.blob));if(!alive())return}}
  const R=mtMakeR(cfg,B);
  mtStatus('Chargement des premiers plans…');
  await Promise.all([0,1,2,3].map(i=>mtLoad(R,i)));
@@ -485,11 +485,11 @@ async function mtRun(rec){
   g.gain.setValueAtTime(vm,Math.max(T0+.6,T1-1.6));g.gain.linearRampToValueAtTime(0,T1);
   src.connect(g);g.connect(R.out);src.start(T0,off);src.stop(T1+.05);R.nodes.push(src)}
  if(ctx&&vo>0)for(const s of B.segs){
-  if(s.k!=='m'||!s.v)continue;const b=MT_AB.get(s.it.m.id);if(!b)continue;
-  const src=ctx.createBufferSource(),g=ctx.createGain(),T=R.t0+s.s,len=Math.min(b.duration-.05,s.dur*s.rate);if(len<=0)continue;
+  if(s.k!=='m'||!s.v)continue;const b=MT_AB.get(s.it.m.src||s.it.m.id),off=(s.it.m.a||0)+.05;if(!b)continue;
+  const src=ctx.createBufferSource(),g=ctx.createGain(),T=R.t0+s.s,len=Math.min(b.duration-off,s.dur*s.rate);if(len<=0)continue;
   src.buffer=b;src.playbackRate.value=s.rate;
   g.gain.setValueAtTime(0,T);g.gain.linearRampToValueAtTime(vo,T+.04);g.gain.setValueAtTime(vo,Math.max(T+.04,T+s.dur-.06));g.gain.linearRampToValueAtTime(0,T+s.dur);
-  src.connect(g);g.connect(R.out);src.start(T,.05,len);R.nodes.push(src)}
+  src.connect(g);g.connect(R.out);src.start(T,off,len);R.nodes.push(src)}
  MT.run=R;
  try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(w=>{R.wl=w}).catch(()=>{})}catch(e){}
  mtFrame(R,0);
@@ -581,7 +581,7 @@ function mtTxtUI(){
 function mtItsUI(){
  const cfg=mtCfg(),its=mtItems(),el=$('#mtits');
  el.innerHTML=its.map(i=>{const off=!!cfg.off[i.m.id];
-  return `<div class="mti ${off?'off':''}" data-id="${esc(i.m.id)}"><div class="mtt">${i.m.type==='photo'?`<img src="${url(i.m.blob)}" alt="" loading="lazy">`:`<video src="${url(i.m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">${ico('video')}</span>`}</div>
+  return `<div class="mti ${off?'off':''}" data-id="${esc(i.m.id)}"><div class="mtt">${i.m.type==='photo'?`<img src="${url(i.m.blob)}" alt="" loading="lazy">`:`<video src="${url(i.m.blob)}#t=${((i.m.a||0)+.1).toFixed(2)}" preload="metadata" muted playsinline></video><span class="pl">${ico('video')}</span>`}</div>
   <div class="sp mtx"><small class="ph-${i.ph}">${PH[i.ph]} · ${esc(i.z.l)}</small><input type="text" maxlength="60" placeholder="${esc(i.z.l)}" value="${esc(cfg.txt[i.m.id]||'')}" aria-label="Sous-titre"></div>
   <button class="ic-only" data-tog aria-label="${off?'Remettre':'Retirer'} ce plan">${ico(off?'circle':'check-circle')}</button></div>`}).join('')||'<div class="hint">Aucune photo ni vidéo pour ce nettoyage.</div>';
  el.onclick=e=>{const b=e.target.closest('[data-tog]');if(!b||MT.busy)return;

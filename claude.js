@@ -114,9 +114,9 @@ function aiVideo(m,f,side){return new Promise(res=>{
  const seek=t=>new Promise(ok=>{const tt=setTimeout(ok,4000);v.onseeked=()=>{clearTimeout(tt);ok()};v.currentTime=t});
  v.onerror=end;
  v.onloadeddata=async()=>{
-  const d=isFinite(v.duration)&&v.duration>0?v.duration:1;
+  const full=isFinite(v.duration)&&v.duration>0?v.duration:1,a0=Math.min(m.a||0,full),d=Math.max(.1,(m.b?Math.min(m.b,full):full)-a0);
   const at=f===1?[.5]:f===2?[.25,.75]:[.15,.5,.85];
-  for(const p of at){await seek(d*p);if(done)return;
+  for(const p of at){await seek(a0+d*p);if(done)return;
    try{if(v.videoWidth)out.push(aiJpeg(v,v.videoWidth,v.videoHeight,side))}catch(e){}}
   end()};
  v.src=u})}
@@ -234,8 +234,8 @@ function aiApply(cfg){
 /* ---------- écran 3 : la proposition (modifiable gratuitement) ---------- */
 function aiThumb(mid){
  if(AI.th.has(mid))return `<img class="th" src="${AI.th.get(mid)}" alt="">`;
- const m=media.find(x=>x.id===mid);if(!m)return '<div class="th"></div>';
- return m.type==='photo'?`<img class="th" src="${url(m.blob)}" alt="">`:`<video class="th" src="${url(m.blob)}#t=0.5" preload="metadata" muted playsinline></video>`}
+ const it=mtItems().find(x=>x.m.id===mid),m=it&&it.m;if(!m)return '<div class="th"></div>';
+ return m.type==='photo'?`<img class="th" src="${url(m.blob)}" alt="">`:`<video class="th" src="${url(m.blob)}#t=${((m.a||0)+.5).toFixed(2)}" preload="metadata" muted playsinline></video>`}
 function aiProp(){
  const cfg=mtCfg(),A=cfg.ai;if(!A||!A.prop){mtOpen();return}
  mtStop();revoke();MT.open++;
