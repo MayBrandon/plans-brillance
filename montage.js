@@ -87,6 +87,8 @@ function mtCfg(){
  return c}
 let mtSaveT;
 function mtSave(){clearTimeout(mtSaveT);const s=sess;mtSaveT=setTimeout(()=>{if(s)putSession(s).catch(()=>{})},300)}
+/* texte d'un plan : celui de Claude si son montage est utilisé, sinon le tien */
+const mtTx=(cfg,id)=>(cfg.ai&&cfg.ai.on&&cfg.ai.tx&&cfg.ai.tx[id])||cfg.txt[id];
 const mtDefTitle=()=>ACT[tplOf(sess).act].h.replace(/<[^>]*>/g,'');
 
 /* les médias du nettoyage, dans l'ordre de Plans Brillance : avant, pendant, après — plan par plan */
@@ -107,17 +109,21 @@ function mtVidDur(m){return new Promise(res=>{
 /* ---------- Construction de la timeline ---------- */
 async function mtBuild(cfg,onProg,quick){
  const S=MT_STY[cfg.sty],k=MT_PACE[cfg.pace].k;
- let its=mtItems().filter(i=>!cfg.off[i.m.id]&&(!S.only||i.ph===S.only));
- if(S.vidFirst){const hasV=new Set(its.filter(i=>i.m.type==='video').map(i=>i.ph+'|'+i.z.id));its=its.filter(i=>i.m.type==='video'||!hasV.has(i.ph+'|'+i.z.id))}
+ const AI=cfg.ai&&cfg.ai.on&&cfg.ai.order&&cfg.ai.order.length?cfg.ai:null;
+ let its;
+ if(AI){const all=new Map(mtItems().map(i=>[i.m.id,i]));its=AI.order.map(id=>all.get(id)).filter(Boolean)}
+ else its=mtItems().filter(i=>!cfg.off[i.m.id]&&(!S.only||i.ph===S.only));
+ if(S.vidFirst&&!AI){const hasV=new Set(its.filter(i=>i.m.type==='video').map(i=>i.ph+'|'+i.z.id));its=its.filter(i=>i.m.type==='video'||!hasV.has(i.ph+'|'+i.z.id))}
  const vids=its.filter(i=>i.m.type==='video'&&!MT_DUR.has(i.m.id));
  if(!quick){let n=0;for(const i of vids){if(onProg)onProg(`Analyse des vidéos ${++n}/${vids.length}`);MT_DUR.set(i.m.id,await mtVidDur(i.m))}}
  const clip=i=>{
+  const ad=AI&&AI.dur[i.m.id];
   if(i.m.type==='video'){
    const vd=MT_DUR.has(i.m.id)?MT_DUR.get(i.m.id):S.vd*k*S.rate;if(!vd)return null;
-   return {k:'m',it:i,v:true,rate:S.rate,dur:Math.min(S.vd*k,vd/S.rate)}}
-  return {k:'m',it:i,v:false,dur:S.pd*k}};
+   return {k:'m',it:i,v:true,rate:S.rate,dur:Math.min(ad||S.vd*k,vd/S.rate)}}
+  return {k:'m',it:i,v:false,dur:ad||S.pd*k}};
  const segs=[];
- if(S.pair){
+ if(S.pair&&!AI){
   const zs=[],seen=new Set();
   for(const i of its)if(!seen.has(i.z.id)){seen.add(i.z.id);zs.push(i.z)}
   for(const z of zs){
@@ -279,7 +285,7 @@ function mtEtat(R,s,lt){
  else{
   const a=mtEO((lt-.15)/.3)*(s.dur-lt<.15?mtC((s.dur-lt)/.15):1);
   if(a>0){
-   c.globalAlpha=ga*a;const txt=String(R.cfg.txt[s.it.m.id]||s.it.z.l).toUpperCase(),num=s.n+'/'+s.N;
+   c.globalAlpha=ga*a;const txt=String(mtTx(R.cfg,s.it.m.id)||s.it.z.l).toUpperCase(),num=s.n+'/'+s.N;
    c.font=`900 ${44*u}px ${MT_FONT}`;const tw=c.measureText(txt).width;
    c.font=`900 ${32*u}px ${MT_FONT}`;const nw=Math.max(84*u,c.measureText(num).width+32*u);
    const h=94*u,w=18*u+nw+20*u+tw+36*u,x=48*u-(1-a)*80*u,y=H-R.mb-h;
@@ -320,7 +326,7 @@ function mtPair(R,s,lt){
  if(cfg.tags){
   c.globalAlpha=ga*(1-pa);mtPill(c,'AVANT',48*u,R.mt,40*u,'rgba(11,15,20,.82)','#eef3f6');
   c.globalAlpha=ga*pa;mtPill(c,'APRÈS',W-48*u,R.mt,40*u,R.acc,R.on,'r');c.globalAlpha=ga}
- if(cfg.subs)mtSubs(R,cfg.txt[s.a.m.id]||s.z.l,lt,s.dur,'soft')}
+ if(cfg.subs)mtSubs(R,mtTx(cfg,s.a.m.id)||s.z.l,lt,s.dur,'soft')}
 function mtSeg(R,s,lt,i){
  const {c,u,S}=R;c.save();
  if(s.k==='intro')mtIntro(R,lt);
@@ -336,7 +342,7 @@ function mtSeg(R,s,lt,i){
   else if(S.vz)z=S.vz;
   if(S.tr==='flash'&&S.txt!=='etat'&&lt<.22){const a=(1-lt/.22)*22*u;c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
   mtMedia(R,R.src.get(s.it.m.id),z,px,py);
-  if(S.txt==='etat')mtEtat(R,s,lt);else mtTexts(R,s.it.ph,R.cfg.txt[s.it.m.id]||s.it.z.l,lt,s.dur)}
+  if(S.txt==='etat')mtEtat(R,s,lt);else mtTexts(R,s.it.ph,mtTx(R.cfg,s.it.m.id)||s.it.z.l,lt,s.dur)}
  c.restore()}
 function mtIdx(R,t){
  let i=Math.max(0,R.cur);const L=R.segs;
@@ -365,7 +371,7 @@ function mtMakeR(cfg,B){
  const u=W/1080,story=cfg.fmt==='story',air=tplOf(sess).act==='airbnb';
  return {cv,c:cv.getContext('2d'),W,H,u,S:MT_STY[cfg.sty],cfg,fit:cfg.fit,
   acc:air?'#FF5A5F':'#35e0c9',on:air?'#ffffff':'#06110f',
-  title:cfg.title||mtDefTitle(),sub:tplOf(sess).l,
+  title:(cfg.ai&&cfg.ai.on&&cfg.ai.title)||cfg.title||mtDefTitle(),sub:tplOf(sess).l,
   site:lsGet('pb_mt_site',tplOf(sess).act==='auto'?'atelier-brillance-auto.fr':'atelier-brillance-services.fr'),
   o1:lsGet('pb_mt_o1','Atelier Brillance')||'Atelier Brillance',o2:lsGet('pb_mt_o2','Amiens et alentours'),
   mt:(story?260:56)*u,mb:(story?380:80)*u,segs:B.segs,total:B.total,src:new Map(),box:mtBox(),cur:-1,nodes:[]}}
@@ -522,6 +528,7 @@ async function mtEst(){
  const e=$('#mtest');if(!e||!sess)return;
  const cfg=mtCfg(),B=await mtBuild(cfg,null,true);
  if(!$('#mtest'))return;
+ if(typeof aiCard==='function')aiCard();
  e.innerHTML=B.n?`Durée ≈ <b>${mtFmtT(B.total)}</b> · ${B.n} média(s) · ${esc(MT_FMT[cfg.fmt].l)}. La création prend le même temps : garde l’écran allumé et l’app ouverte.`:'Aucun plan sélectionné.'}
 function mtChoice(id,opts,cur,pick){
  const el=$('#'+id);
@@ -593,6 +600,7 @@ async function mtOpen(){
  const n=mtItems().length;
  $('#app').innerHTML=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><div class="sp ht"><b>Montage vidéo</b><small>${esc(sess.name)}</small></div></div></header>
  <div class="mt">
+  <div id="mtai"></div>
   <div class="mtv"><canvas id="mtcv" width="1080" height="1920"></canvas><div class="bar"><i id="mtbar"></i></div><div class="mtst" id="mtst"></div></div>
   <div class="row mtgo"><button class="sp" id="mtpv">${ico('play')} Aperçu</button><button class="sp primary" id="mtgo">${ico('film')} Créer la vidéo</button></div>
   <div class="hint" id="mtest"></div>
