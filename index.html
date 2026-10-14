@@ -492,6 +492,11 @@ const Z={
   {id:'sechage',l:'Séchage'}]},
  'k-jantes':{g:'Extérieur',l:'Jantes',e:'wheel',t:'Plan d’action : gros plan sur une jante, le produit qui agit puis le rinçage.',ck:[
   {id:'jantes',l:'Les 4 jantes'}]},
+ 'k-aspi2':{g:'Dernière étape',l:'Dernière passe d’aspiration',e:'vacuum',t:'Plan d’action : un dernier passage rapide en gros plan, l’intérieur nickel.',ck:[
+  {id:'sols',l:'Sols et tapis'},
+  {id:'sieges',l:'Sièges et banquette'},
+  {id:'recoins',l:'Recoins, rails et bacs'},
+  {id:'coffre',l:'Coffre'}]},
  /* Canapé / fauteuil */
  'c-ens':{g:'Canapé',l:'Vue d’ensemble',e:'sofa',t:'Bien de face, à hauteur d’assise : le canapé entier dans le cadre.'},
  'c-34':{g:'Canapé',l:'Vue de trois quarts',e:'sofa',t:'Depuis un angle de la pièce, pour montrer le volume.'},
@@ -588,13 +593,13 @@ const Z={
  'ap-linge':{g:'Plans d’action',l:'Changement du linge',e:'bed',t:'Les draps propres qu’on déplie sur le lit.'},
 };
 const AUTO_AB=['ext-av','ext-ar','int-large','cd-porte','cd-siege','cd-sol','cp-porte','cp-siege','cp-sol','ar-g-porte','ar-g-sol','banquette','ar-d-porte','ar-d-sol','coffre','tdb','volant','console','ciel','aeration'];
-const AUTO_PD=['k-aspi','k-sieges','k-moquette','k-plastiques','k-montants','k-coffre','k-tapis','k-finitions','k-ext','k-jantes'];
+const AUTO_PD=['k-aspi','k-sieges','k-moquette','k-plastiques','k-montants','k-coffre','k-tapis','k-finitions','k-ext','k-jantes','k-aspi2'];
 const TEX_PD=['t-aspi','t-pre','t-brosse','t-extraction','t-eau'];
 /* Listes selon la prestation */
 const TPL={
  'auto-complet':{fam:'auto',l:'Auto · Complet',d:'Intérieur et extérieur',ab:AUTO_AB,pd:AUTO_PD},
  'auto-interieur':{fam:'auto',l:'Auto · Intérieur',d:'Sans les extérieurs',ab:AUTO_AB.filter(x=>!x.startsWith('ext-')),pd:AUTO_PD.filter(x=>x!=='k-ext'&&x!=='k-jantes')},
- 'auto-express':{fam:'auto',l:'Auto · Express',d:'Les plans essentiels',ab:['ext-av','int-large','cd-siege','cd-sol','cp-siege','banquette','coffre','tdb'],pd:['k-aspi','k-plastiques','k-finitions']},
+ 'auto-express':{fam:'auto',l:'Auto · Express',d:'Les plans essentiels',ab:['ext-av','int-large','cd-siege','cd-sol','cp-siege','banquette','coffre','tdb'],pd:['k-aspi','k-plastiques','k-finitions','k-aspi2']},
  'canape':{fam:'canape',l:'Canapé / fauteuil',d:'Textile à domicile',ab:['c-ens','c-34','c-assise','c-dossier','c-acc-g','c-acc-d','c-coussins','c-tache'],pd:TEX_PD},
  'matelas':{fam:'matelas',l:'Matelas',d:'Textile à domicile',ab:['m-ens','m-tete','m-pieds','m-bords','m-tache'],pd:TEX_PD},
  'tapis':{fam:'tapis',l:'Tapis',d:'Textile à domicile',ab:['r-ens','r-fibres','r-bords','r-tache'],pd:TEX_PD},
