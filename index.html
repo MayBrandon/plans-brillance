@@ -668,7 +668,8 @@ async function home(act){
  <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button>
  <button style="width:100%;padding:16px;margin-top:10px" id="mth">${ico('film')} Montage vidéo</button>
  <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="raw">${ico('sparkles')}<span><b style="display:block">Vidéo brute → montage IA</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Mets ta vidéo telle quelle : Claude fait le tri et monte la vidéo</small></span></button>
- <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="fly">${ico('file')}<span><b style="display:block">Flyer</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Avec tes photos avant/après, pour Facebook et Instagram</small></span></button></div>
+ <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="fly">${ico('file')}<span><b style="display:block">Flyer</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Avec tes photos avant/après, pour Facebook et Instagram</small></span></button>
+ <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="pubb">${ico('film')}<span><b style="display:block">Pub vidéo</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Tes photos → Claude écrit le script, l’appli anime la pub</small></span></button></div>
  <div id="rdv"></div>
  <h2>Nettoyages ${esc(actLow(curAct))}</h2>`;
  if(!list.length)h+=`<div class="hint">Aucun nettoyage ${esc(actLow(curAct))} pour l’instant. Crée-en un avant de commencer.</div>`;
@@ -683,6 +684,7 @@ async function home(act){
  <div class="links"><button id="how">Comment ça marche</button><button id="set">Réglages</button><button id="priv">Confidentialité</button></div>`+tabbar();
  $('#app').innerHTML=h;document.body.classList.add('has-tab');
  $('#new').onclick=newSession;bindTheme();
+ $('#pubb').onclick=()=>{if(typeof pbOpen==='function')pbOpen();else toast('Recharge l’app')};
  $('#fly').onclick=()=>{if(typeof flOpen==='function')flOpen();else toast('Recharge l’app')};
  $('#raw').onclick=()=>{if(typeof rawStart==='function')rawStart();else toast('Recharge l’app')};
  $('#mth').onclick=()=>{if(typeof mtPick==='function')mtPick();else toast('Montage indisponible : recharge l’app')};
@@ -1211,5 +1213,6 @@ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 <script src="claude.js"></script>
 <script src="rush.js"></script>
 <script src="flyer.js"></script>
+<script src="pub.js"></script>
 </body>
 </html>

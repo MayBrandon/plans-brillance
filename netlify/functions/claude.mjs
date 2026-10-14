@@ -90,6 +90,7 @@ export default async (req) => {
   if (b.mode === 'ping') return out({ ok: true });
   if (b.mode === 'decoupe') return decoupe(b, key);
   if (b.mode === 'flyer') return flyer(b, key);
+  if (b.mode === 'pub') return pub(b, key);
 
   /* 3. contenu */
   const medias = Array.isArray(b.medias) ? b.medias.slice(0, MAX_MEDIA) : [];
@@ -267,4 +268,41 @@ async function flyer(b, key) {
     b.consigne ? `Consigne : « ${clean(b.consigne, 300)} »` : 'Pas de consigne : propose une version plus accrocheuse.'
   ].join('\n\n');
   return ask(key, SYSTEM_FLY, TOOL_FLY, [{ type: 'text', text }]);
+}
+
+/* ---------- script d'une pub vidéo (photos avant/après) ---------- */
+const TOOL_PUB = {
+  name: 'ecrire_pub',
+  description: 'Renvoie le script de la pub et l’ordre des photos.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      kick: { type: 'string', description: 'Bandeau d’ouverture en majuscules (max 20 caractères), ex. « À AMIENS ».' },
+      hook: { type: 'string', description: 'Accroche (max 45 caractères).' },
+      lignes: { type: 'array', items: { type: 'string' }, description: 'Une phrase courte par paire avant/après (max 40 caractères chacune), dans l’ordre des paires.' },
+      btn: { type: 'string', description: 'Texte du bouton d’appel à l’action (max 28 caractères).' },
+      paires: { type: 'array', items: { type: 'array', items: { type: 'string' } }, description: 'Jusqu’à 3 paires [avant, après] d’identifiants d’images (i1, i2…), la plus spectaculaire en premier. Avant = sale, après = propre, même zone si possible.' }
+    },
+    required: ['kick', 'hook', 'lignes', 'btn', 'paires']
+  }
+};
+const SYSTEM_PUB = `Tu écris des pubs vidéo courtes (8 à 15 s, Facebook / Instagram) pour Atelier Brillance : nettoyage à domicile, fait à la main, à Amiens et alentours.
+La pub : un bandeau + une accroche, puis 1 à 3 rideaux avant/après (une phrase chacun), puis un bouton d'appel à l'action et le site.
+Règles : français simple, direct et percutant, sans emoji, sans prix ni chiffre inventés (seulement ceux de la consigne). Associe chaque photo sale à la photo propre de la même zone. N'utilise pas une photo où l'on voit une plaque lisible, un visage ou des papiers. La consigne de l'utilisateur passe avant tes habitudes.
+Réponds uniquement en appelant l'outil ecrire_pub (obligatoire), sans texte autour.`;
+async function pub(b, key) {
+  const imgs = (Array.isArray(b.images) ? b.images : []).slice(0, 8);
+  const a = b.actuel && typeof b.actuel === 'object' ? b.actuel : {};
+  const content = [{ type: 'text', text: [
+    `Activité : ${clean(b.activite, 40)} · site : ${clean(b.site, 60)} · format : ${clean(b.format, 20)}`,
+    `Textes actuels : bandeau « ${clean(a.kick, 40)} », accroche « ${clean(a.hook, 80)} », phrases « ${clean(a.l1, 60)} » / « ${clean(a.l2, 60)} » / « ${clean(a.l3, 60)} », bouton « ${clean(a.btn, 40)} »`,
+    b.consigne ? `Consigne : « ${clean(b.consigne, 300)} »` : 'Pas de consigne particulière.'
+  ].join('\n') }];
+  for (const im of imgs) {
+    if (typeof im.data !== 'string' || im.data.length > MAX_IMG_B64 || !/^[A-Za-z0-9+/=]+$/.test(im.data)) continue;
+    content.push({ type: 'text', text: clean(im.id, 4) });
+    content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: im.data } });
+  }
+  content.push({ type: 'text', text: 'Écris la pub.' });
+  return ask(key, SYSTEM_PUB, TOOL_PUB, content);
 }
