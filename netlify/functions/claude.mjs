@@ -60,7 +60,7 @@ Règles :
 - Respecte la durée cible si elle est donnée (somme des durées ≈ cible).
 - Utilise uniquement les identifiants de médias fournis (m1, m2…).
 - La consigne de l'utilisateur passe avant tes habitudes, tant qu'elle respecte ces règles.
-Réponds uniquement avec l'outil proposer_montage.`;
+Réponds uniquement en appelant l'outil proposer_montage (obligatoire), sans texte autour.`;
 
 function mediaLine(m) {
   const t = m.type === 'video' ? `vidéo ${Number(m.dur || 0).toFixed(1)} s` : 'photo';
@@ -135,7 +135,7 @@ async function ask(key, system, tool, content) {
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model, max_tokens: 2500, system,
-        tools: [tool], tool_choice: { type: 'tool', name: tool.name },
+        tools: [tool], tool_choice: { type: 'auto' },
         messages: [{ role: 'user', content }]
       })
     });
@@ -149,7 +149,13 @@ async function ask(key, system, tool, content) {
     console.log('anthropic error', r.status, j?.error?.type, msg.slice(0, 300));
     return out({ error: 'api', status: r.status, detail: msg.slice(0, 200) }, 502);
   }
-  const tu = (j.content || []).find(c => c.type === 'tool_use');
+  /* ce modèle n'accepte pas d'outil forcé : on prend l'outil s'il l'a utilisé, sinon le JSON de sa réponse */
+  let tu = (j.content || []).find(c => c.type === 'tool_use' && c.name === tool.name);
+  if (!tu) {
+    const txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
+    const a = txt.indexOf('{'), z = txt.lastIndexOf('}');
+    if (a >= 0 && z > a) { try { tu = { input: JSON.parse(txt.slice(a, z + 1)) } } catch {} }
+  }
   const u = j.usage || {};
   const pr = PRICE[model] || PRICE['claude-sonnet-5-5'];
   const cost = ((u.input_tokens || 0) * pr[0] + (u.output_tokens || 0) * pr[1]) / 1e6;
@@ -194,7 +200,7 @@ Règles :
 - Le premier passage est l'accroche : le plus frappant (plus sale, plus surprenant). Les suivants dans l'ordre du rush.
 - Textes : courts, en français, sans emoji.
 - Utilise uniquement les identifiants de zones fournis.
-Réponds uniquement avec l'outil decouper_rush.`;
+Réponds uniquement en appelant l'outil decouper_rush (obligatoire), sans texte autour.`;
 
 async function decoupe(b, key) {
   const zones = (Array.isArray(b.zones) ? b.zones : []).slice(0, 60).map(z => ({ id: clean(z.id, 40), l: clean(z.l, 60) }));
