@@ -26,6 +26,8 @@ const RS_LEN={2:{l:'2 s'},3:{l:'3 s'},4:{l:'4 s'},5:{l:'5 s'}};
 `;document.head.appendChild(st)})();
 
 const rsFmt=s=>{s=Math.max(0,s);const m=Math.floor(s/60),r=s-m*60;return m+':'+(r<10?'0':'')+r.toFixed(1)};
+/* iPhone : une vidéo sans type MIME ne se lit pas depuis un blob → on lui en donne un */
+function rsPlayable(b,ext){if(!b||b.type)return b;const t=/mp4|m4v/i.test(ext||'')?'video/mp4':'video/quicktime';try{return new Blob([b],{type:t})}catch(e){return b}}
 function rsList(){return media.filter(m=>m.zone==='_rush').sort((a,b)=>a.ts-b.ts)}
 function rsCuts(){if(!Array.isArray(sess.cuts))sess.cuts=[];return sess.cuts}
 /* passages d'une zone, sous forme de vidéos « virtuelles » pour le montage */
@@ -34,7 +36,7 @@ function rsItems(z,ph){
  const out=[];
  for(const c of sess.cuts)if(c.zone===z&&c.phase===ph){
   const r=media.find(m=>m.id===c.rush);if(!r)continue;
-  out.push({id:c.id,sid:sess.id,zone:c.zone,phase:c.phase,type:'video',blob:r.blob,ext:r.ext,ts:r.ts+c.a*1000,a:c.a,b:c.b,src:r.id,cut:true});
+  out.push({id:c.id,sid:sess.id,zone:c.zone,phase:c.phase,type:'video',blob:rsPlayable(r.blob,r.ext),ext:r.ext,ts:r.ts+c.a*1000,a:c.a,b:c.b,src:r.id,cut:true});
   if(typeof MT_DUR!=='undefined')MT_DUR.set(c.id,Math.max(.3,c.b-c.a))}
  return out}
 
@@ -43,8 +45,8 @@ async function rsImport(){
  inp.onchange=async()=>{const f=inp.files&&inp.files[0];if(!f)return;
   const ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||'mov';
   const m={id:crypto.randomUUID(),sid:sess.id,zone:'_rush',phase:'avant',type:'video',blob:f,ext,ts:Date.now(),name:(f.name||'Rush').slice(0,60)};
-  toast('Import du rush…');
-  try{await putMedia(m)}catch(e){toast('Impossible d’enregistrer ce rush (place ?)');return}
+  $('#app').insertAdjacentHTML('beforeend',`<div class="hint" id="rsimpst" style="text-align:center">Import du rush (${Math.round(f.size/1048576)} Mo)… garde l’appli ouverte.</div>`);
+  try{await putMedia(m)}catch(e){const st=$('#rsimpst');if(st){st.className='hint warn';st.textContent='Impossible d’enregistrer ce rush : place insuffisante sur le téléphone ? ('+(e&&e.name||'erreur')+')'}return}
   media.push(m);RS.cur=m.id;rsOpen()};
  inp.click()}
 
@@ -61,7 +63,8 @@ function rsOpen(){
   <button class="primary" id="rsimp" style="width:100%;padding:16px">${ico('import')} Importer le rush</button></div>`;
   $('#app').innerHTML=h;$('#back').onclick=hub;$('#rsimp').onclick=rsImport;window.scrollTo(0,0);return}
  h+=`${rs.length>1?`<div class="chips" id="rsl" style="margin-top:12px">${rs.map((r,j)=>`<button data-r="${esc(r.id)}" class="${r.id===RS.cur?'on':''}">${ico('video')}Rush ${j+1}</button>`).join('')}</div>`:''}
- <video id="rsv" src="${url(R.blob)}#t=0.1" controls playsinline preload="metadata"></video>
+ <video id="rsv" src="${url(rsPlayable(R.blob,R.ext))}" controls playsinline preload="auto"></video>
+ <div class="hint" id="rsld" style="margin:8px 0 0;text-align:center">Chargement de la vidéo… (${Math.round((R.blob.size||0)/1048576)} Mo)</div>
  <div class="rs-t"><b id="rst">0:00.0</b><div class="row"><button data-s="-1">−1 s</button><button data-s="-0.2">−0,2</button><button data-s="0.2">+0,2</button><button data-s="1">+1 s</button></div></div>
  <div class="hint" style="margin:8px 0 0">Mets la vidéo au bon moment, puis touche « Marquer ici » sur la zone. Le passage dure ${len} s à partir de ce moment.</div>
  <div class="lbl">Durée de chaque passage</div><div class="seg" id="rslen"></div>
@@ -75,7 +78,13 @@ function rsOpen(){
  const v=$('#rsv'),tl=$('#rst');
  const upd=()=>{tl.textContent=rsFmt(v.currentTime)+' / '+rsFmt(isFinite(v.duration)?v.duration:0);
   if(RS.stopAt!==null&&v.currentTime>=RS.stopAt){v.pause();RS.stopAt=null}};
- v.ontimeupdate=upd;v.onloadedmetadata=upd;v.onseeked=upd;
+ v.ontimeupdate=upd;v.onseeked=upd;
+ const ld=$('#rsld');
+ v.onloadedmetadata=()=>{upd();if(ld)ld.style.display='none'};
+ v.onerror=()=>{if(!ld)return;const c=v.error?v.error.code:0;ld.style.display='';ld.className='hint warn';
+  ld.innerHTML=`La vidéo ne se lit pas (code ${c}${R.blob&&R.blob.type?' · '+esc(R.blob.type):''}). <button id="rsre" style="padding:6px 10px;margin-left:6px">Réessayer</button>`;
+  const b=$('#rsre');if(b)b.onclick=()=>{ld.className='hint';ld.textContent='Chargement de la vidéo…';v.src=url(rsPlayable(R.blob,R.ext));v.load()}};
+ setTimeout(()=>{if(ld&&ld.style.display!=='none'&&!v.error&&v.readyState<1){ld.textContent='Toujours en chargement… Si rien ne bouge, touche ▶ sur la vidéo.'}},8000);
  v.onpause=()=>{RS.stopAt=null};
  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{v.pause();v.currentTime=Math.max(0,Math.min((v.duration||0)-.05,v.currentTime+parseFloat(b.dataset.s)))});
  mtChoice('rslen',RS_LEN,String(len),k=>{lsSet('pb_rs_len',k);rsOpen()});
