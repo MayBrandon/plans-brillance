@@ -140,13 +140,14 @@ async function ask(key, system, tool, content) {
       })
     });
     j = await r.json().catch(() => ({}));
-  } catch { return out({ error: 'network' }, 502) }
+  } catch (e) { console.log('network error', String(e).slice(0, 200)); return out({ error: 'network' }, 502) }
   if (!r.ok) {
     const msg = String(j?.error?.message || '');
     if (/credit|balance|billing/i.test(msg)) return out({ error: 'credits' }, 402);
     if (r.status === 429 || r.status === 529) return out({ error: 'busy' }, 503);
     if (r.status === 401) return out({ error: 'badkey' }, 503);
-    return out({ error: 'api', detail: msg.slice(0, 200) }, 502);
+    console.log('anthropic error', r.status, j?.error?.type, msg.slice(0, 300));
+    return out({ error: 'api', status: r.status, detail: msg.slice(0, 200) }, 502);
   }
   const tu = (j.content || []).find(c => c.type === 'tool_use');
   const u = j.usage || {};

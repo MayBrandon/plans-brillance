@@ -206,7 +206,7 @@ async function aiSend(){
  if(!$('.ai-act'))return;
  if(j.error||!j.prop){
   if(j.error==='nokey'||j.error==='nofn'||j.error==='forbidden')AI.status=j.error;
-  w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||'Claude n’a pas pu préparer le montage.')}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok">Réessayer</button><button id="aino">Retour au montage</button>`;
+  w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||(j.error?'Claude a refusé la demande'+(j.detail?' : '+j.detail:'')+(j.status?' ('+j.status+')':''):'Claude n’a pas pu préparer le montage.'))}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok">Réessayer</button><button id="aino">Retour au montage</button>`;
   $('#aiok').onclick=aiSend;$('#aino').onclick=()=>{AI.imgs=[];mtOpen()};return}
  const used=new Set(sel.map(x=>x.m));
  cfg.ai={prop:aiFix(j.prop,AI.ids),ids:AI.ids,info:Object.fromEntries(AI.medias.map(m=>[m.id,m])),on:true,cost:j.cost||0,ts:Date.now(),sent:[...used]};

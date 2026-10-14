@@ -180,7 +180,7 @@ function rsValid(R,fr,dur,cons,ph){
   AI.busy=false;if(!$('.ai-act'))return;
   const ps=j.prop&&rsPassages(j.prop,zs,dur);
   if(j.error||!ps||!ps.length){
-   w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||'Claude n’a trouvé aucun passage utilisable.')}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok2">Réessayer</button><button id="aino2">Retour</button>`;
+   w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||(j.error?'Claude a refusé la demande'+(j.detail?' : '+j.detail:'')+(j.status?' ('+j.status+')':''):'Claude n’a trouvé aucun passage utilisable.'))}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok2">Réessayer</button><button id="aino2">Retour</button>`;
    $('#aiok2').onclick=()=>rsValid(R,fr,dur,cons,ph);$('#aino2').onclick=()=>rsOpen();return}
   /* on remplace les passages automatiques précédents de ce rush */
   sess.cuts=rsCuts().filter(c=>!(c.rush===R.id&&c.auto));
