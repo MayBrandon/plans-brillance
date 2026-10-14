@@ -666,7 +666,8 @@ async function home(act){
  const list=all.filter(s=>tplOf(s).act===curAct);
  let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo · ${A.l}</span><h1>${A.h}</h1><p>${A.p}</p></div>
  <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button>
- <button style="width:100%;padding:16px;margin-top:10px" id="mth">${ico('film')} Montage vidéo</button></div>
+ <button style="width:100%;padding:16px;margin-top:10px" id="mth">${ico('film')} Montage vidéo</button>
+ <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="raw">${ico('sparkles')}<span><b style="display:block">Vidéo brute → montage IA</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Mets ta vidéo telle quelle : Claude fait le tri et monte la vidéo</small></span></button></div>
  <div id="rdv"></div>
  <h2>Nettoyages ${esc(actLow(curAct))}</h2>`;
  if(!list.length)h+=`<div class="hint">Aucun nettoyage ${esc(actLow(curAct))} pour l’instant. Crée-en un avant de commencer.</div>`;
@@ -677,10 +678,11 @@ async function home(act){
   const t=tplOf(s);
   h+=`<div class="sess" data-id="${esc(s.id)}"><div class="ic">${ico(FAM[t.fam].e)}</div><div class="sp"><b>${esc(s.name)}</b><small>${esc(t.l)} · ${new Date(s.ts).toLocaleDateString('fr-FR')}<br>${ms.length} fichier(s)${size?' · '+fmtSize(size):''}</small></div><button class="ic-only" data-del="${esc(s.id)}" aria-label="Supprimer">${ico('trash')}</button></div>`}
  h+=storageHtml(total,await storageInfo());
- h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : rien n’est envoyé en ligne.</div>
+ h+=`<div class="hint">${ico('lock')} Tes photos et vidéos restent sur ton téléphone : les vidéos ne partent jamais, et aucune image n’est envoyée à Claude sans ta validation.</div>
  <div class="links"><button id="how">Comment ça marche</button><button id="set">Réglages</button><button id="priv">Confidentialité</button></div>`+tabbar();
  $('#app').innerHTML=h;document.body.classList.add('has-tab');
  $('#new').onclick=newSession;bindTheme();
+ $('#raw').onclick=()=>{if(typeof rawStart==='function')rawStart();else toast('Recharge l’app')};
  $('#mth').onclick=()=>{if(typeof mtPick==='function')mtPick();else toast('Montage indisponible : recharge l’app')};
  $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;$('#set').onclick=settingsDlg;
  renderRdv();syncPending();

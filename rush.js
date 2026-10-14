@@ -146,8 +146,8 @@ function rsGrab(blob,times,onp){return new Promise(res=>{
   try{if(v.videoWidth)out.push({t,...aiJpeg(v,v.videoWidth,v.videoHeight,512),off:false})}catch(e){}
   if(onp)onp(++k,times.length)}end()};
  v.src=u})}
-async function rsAuto(R,cons){
- const run=++MT.open,blob=rsPlayable(R.blob,R.ext),ph=RS.ph;
+async function rsAuto(R,cons,phase){
+ const run=++MT.open,blob=rsPlayable(R.blob,R.ext),ph=phase||RS.ph;
  $('#app').innerHTML=aiHead('Découpage automatique',sess.name)+`<div class="ai-scr"><div class="ai-wait"><div class="sp1"></div><div id="aipg">Lecture du rush…</div></div></div>`;
  $('#aib').onclick=()=>{MT.open++;rsOpen()};
  const dur=await rsDur(blob);if(run!==MT.open)return;
@@ -174,25 +174,35 @@ function rsValid(R,fr,dur,cons,ph){
  $('#aiok').onclick=async()=>{
   if(AI.busy)return;const sel=fr.filter(x=>!x.off);if(!sel.length)return;
   AI.busy=true;const w=$('.ai-act');w.innerHTML=`<div class="ai-wait" style="padding:10px 0"><div class="sp1"></div>Claude regarde ton rush… (environ 20 à 40 s)</div>`;
-  const zs=zonesFor(ph);
-  const j=await aiCall({mode:'decoupe',titre:sess.name,prestation:tplOf(sess).l,phase:PH[ph],duree:+dur.toFixed(1),consigne:cons,
+  const zs=rsZoneList(ph);
+  const j=await aiCall({mode:'decoupe',titre:sess.name,prestation:tplOf(sess).l,phase:ph==='auto'?'auto':PH[ph],duree:+dur.toFixed(1),consigne:cons,
+   styles:ph==='auto'?Object.entries(MT_STY).filter(([k])=>k!=='ba').map(([k,v])=>({id:k,l:v.l,d:v.d})):[],
    zones:zs.map(z=>({id:z.id,l:z.l})),images:sel.map(x=>({t:x.t,data:x.b64}))});
   AI.busy=false;if(!$('.ai-act'))return;
   const ps=j.prop&&rsPassages(j.prop,zs,dur);
   if(j.error||!ps||!ps.length){
    w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||(j.error?'Claude a refusé la demande'+(j.detail?' : '+j.detail:'')+(j.status?' ('+j.status+')':''):'Claude n’a trouvé aucun passage utilisable.'))}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok2">Réessayer</button><button id="aino2">Retour</button>`;
-   $('#aiok2').onclick=()=>rsValid(R,fr,dur,cons,ph);$('#aino2').onclick=()=>rsOpen();return}
+   $('#aiok2').onclick=()=>rsValid(R,fr,dur,cons,ph);$('#aino2').onclick=()=>{if(ph==='auto')hub();else rsOpen()};return}
   /* on remplace les passages automatiques précédents de ce rush */
   sess.cuts=rsCuts().filter(c=>!(c.rush===R.id&&c.auto));
   const ids={},info={},L=[];
-  ps.forEach((p,k)=>{const c={id:'cut_'+crypto.randomUUID(),rush:R.id,zone:p.zone,phase:ph,a:p.debut,b:p.fin,ts:Date.now(),auto:true};sess.cuts.push(c);
-   const id='m'+(k+1);ids[id]=c.id;info[id]={id,ph,zone:zs.find(z=>z.id===p.zone).l,type:'video',dur:+(p.fin-p.debut).toFixed(1)};
+  ps.forEach((p,k)=>{const [pp,zz]=p.zone.split('|');const c={id:'cut_'+crypto.randomUUID(),rush:R.id,zone:zz,phase:pp,a:p.debut,b:p.fin,ts:Date.now(),auto:true};sess.cuts.push(c);
+   const id='m'+(k+1);ids[id]=c.id;info[id]={id,ph:pp,zone:zs.find(z=>z.id===p.zone).l,type:'video',dur:+(p.fin-p.debut).toFixed(1)};
    L.push({id,vu:p.vu,texte:p.texte,duree:+(p.fin-p.debut).toFixed(1)})});
   const cfg=mtCfg();
   cfg.ai={prop:{titre:String(j.prop.titre||'').slice(0,50),accroche:L[0],plans:L.slice(1),ecartes:[],conseil:''},ids,info,on:true,cost:j.cost||0,ts:Date.now(),sent:[]};
-  aiApply(cfg);cfg.sty='etat';cfg.vm=null;cfg.vo=null;lsSet('pb_mt_sty','etat');
+  /* style : « État des lieux » si tout est de l'avant, sinon celui choisi par Claude */
+  const onlyAv=ps.every(p=>p.zone.startsWith('avant|'));
+  let sty=onlyAv?'etat':(MT_STY[j.prop.style]&&!['ba','etat'].includes(j.prop.style)?j.prop.style:'edit');
+  if(ph!=='auto'&&ph==='avant')sty='etat';
+  aiApply(cfg);cfg.sty=sty;cfg.vm=null;cfg.vo=null;lsSet('pb_mt_sty',sty);
   await putSession(sess);
   AI.status='ok';mtOpen();toast(`Claude a gardé ${ps.length} passages · touche « Créer la vidéo »`)}}
+/* zones proposées à Claude : « phase|zone » ; en mode auto, toutes les phases */
+function rsZoneList(ph){
+ const out=[];
+ for(const p of ph==='auto'?PHASES:[ph])for(const z of zonesFor(p))out.push({id:p+'|'+z.id,l:(ph==='auto'?PH[p]+' · ':'')+z.l});
+ return out}
 /* passages renvoyés par Claude → vérifiés (zones connues, une par zone, dans le rush, sans chevauchement) */
 function rsPassages(p,zs,dur){
  const ok=new Set(zs.map(z=>z.id)),seen=new Set(),out=[];
@@ -203,3 +213,19 @@ function rsPassages(p,zs,dur){
   if(out.some(o=>a<o.fin&&b>o.debut))continue;
   seen.add(x.zone);out.push({zone:x.zone,debut:+a.toFixed(2),fin:+b.toFixed(2),texte:String(x.texte||'').slice(0,40),vu:String(x.vu||'').slice(0,140)})}
  return out}
+
+/* ---------- depuis l'accueil : une vidéo brute → l'IA trie et monte ---------- */
+function rawStart(){
+ if(typeof aiPro!=='function'||!aiPro()){toast('Connecte ton espace pro (Réglages) pour utiliser Claude');return}
+ const inp=document.createElement('input');inp.type='file';inp.accept='video/*,.mov,.mp4,.m4v';
+ inp.onchange=async()=>{const f=inp.files&&inp.files[0];if(!f)return;
+  let type=lsGet('pb_type_'+curAct,'');if(!TPL[type]||TPL[type].act!==curAct)type=(Object.entries(TPL).find(([k,t])=>t.act===curAct)||['auto-complet'])[0];
+  const d=new Date(),s={id:crypto.randomUUID(),name:'Vidéo brute · '+d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),ts:Date.now(),type,avantDone:false,pendantDone:false,apresDone:false,raw:true};
+  $('#app').innerHTML=`<div class="ai-scr"><div class="ai-wait"><div class="sp1"></div>Import de la vidéo (${Math.round(f.size/1048576)} Mo)… garde l’appli ouverte.</div></div>`;
+  try{await putSession(s);sess=s;media=[];curAct=tplOf(s).act;
+   const ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||'mov';
+   const m={id:crypto.randomUUID(),sid:s.id,zone:'_rush',phase:'avant',type:'video',blob:f,ext,ts:Date.now(),name:(f.name||'Vidéo').slice(0,60)};
+   await putMedia(m);media.push(m);RS.cur=m.id;
+   rsAuto(m,'','auto')}
+  catch(e){toast('Impossible d’enregistrer la vidéo (place ?)');home()}};
+ inp.click()}

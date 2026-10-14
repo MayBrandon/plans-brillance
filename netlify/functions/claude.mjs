@@ -172,6 +172,7 @@ const TOOL_CUT = {
     type: 'object',
     properties: {
       titre: { type: 'string', description: 'Titre court de la vidéo (max 40 caractères).' },
+      style: { type: 'string', description: 'Identifiant du style de montage le plus adapté (seulement si une liste de styles est fournie).' },
       passages: {
         type: 'array', description: 'Un passage par zone vue dans le rush (au plus un par zone), dans l’ordre du montage : l’accroche en premier.',
         items: {
@@ -192,25 +193,29 @@ const TOOL_CUT = {
 };
 const SYSTEM_CUT = `Tu es le monteur vidéo d'Atelier Brillance (nettoyage à domicile, Amiens et alentours).
 Tu reçois des images extraites d'un rush filmé avec des lunettes (vue à la première personne), chacune avec son minutage dans le rush, et la liste des zones du véhicule ou du logement.
-But : une vidéo courte « état des lieux » qui montre l'état AVANT nettoyage, zone par zone, comme un teaser.
+But par défaut : une vidéo courte « état des lieux » qui montre l'état AVANT nettoyage, zone par zone, comme un teaser (sauf si le message précise un autre but).
 Règles :
 - Pour chaque zone réellement visible, choisis LE meilleur passage : saleté bien visible, image nette et stable, cadrage lisible. 2 à 4 secondes.
-- Au plus un passage par zone. N'invente pas une zone que tu ne vois pas. 3 à 7 passages en tout.
+- Au plus un passage par zone (une zone = un identifiant). N'invente pas une zone que tu ne vois pas. 3 à 7 passages sauf indication contraire.
 - Les passages ne doivent pas se chevaucher.
 - Évite tout moment où l'on voit une plaque d'immatriculation lisible, un visage ou des papiers.
-- Le premier passage est l'accroche : le plus frappant (plus sale, plus surprenant). Les suivants dans l'ordre du rush.
+- Le premier passage est l'accroche : le plus frappant (plus sale, plus surprenant, ou le résultat le plus bluffant). Les suivants dans l'ordre logique (avant → pendant → après), sinon dans l'ordre du rush.
 - Textes : courts, en français, sans emoji.
 - Utilise uniquement les identifiants de zones fournis.
 Réponds uniquement en appelant l'outil decouper_rush (obligatoire), sans texte autour.`;
 
 async function decoupe(b, key) {
-  const zones = (Array.isArray(b.zones) ? b.zones : []).slice(0, 60).map(z => ({ id: clean(z.id, 40), l: clean(z.l, 60) }));
+  const zones = (Array.isArray(b.zones) ? b.zones : []).slice(0, 150).map(z => ({ id: clean(z.id, 60), l: clean(z.l, 80) }));
+  const styles = (Array.isArray(b.styles) ? b.styles : []).slice(0, 12).map(x => `${clean(x.id, 20)} — ${clean(x.l, 30)} : ${clean(x.d, 120)}`);
+  const auto = b.phase === 'auto';
   const frames = (Array.isArray(b.images) ? b.images : []).slice(0, MAX_IMG);
   const duree = Math.max(1, Math.min(3600, Number(b.duree) || 0));
   if (!zones.length || !frames.length) return out({ error: 'bad' }, 400);
   const content = [{ type: 'text', text: [
     `Nettoyage : ${clean(b.titre, 80)} (${clean(b.prestation, 60)})`,
-    `Phase : ${clean(b.phase, 12).toUpperCase()} · durée du rush : ${duree.toFixed(1)} s`,
+    auto ? `Vidéo brute du nettoyage (durée ${duree.toFixed(1)} s) : elle peut contenir l'avant, le pendant (action) et l'après. Déduis la phase de chaque passage d'après les images (sale = avant, en cours = pendant, propre = après).\nBut : une vidéo courte qui donne envie : accroche forte, l'état avant, l'action, puis le résultat. 4 à 10 passages. Si tu ne vois que l'avant, fais un état des lieux (3 à 7 passages).`
+         : `Phase : ${clean(b.phase, 12).toUpperCase()} · durée du rush : ${duree.toFixed(1)} s`,
+    styles.length ? `Styles de montage possibles (choisis le plus adapté dans « style ») :\n${styles.join('\n')}` : '',
     `Zones possibles (id — nom) :\n${zones.map(z => `${z.id} — ${z.l}`).join('\n')}`,
     b.consigne ? `Consigne de l'utilisateur : « ${clean(b.consigne, 600)} »` : ''
   ].filter(Boolean).join('\n\n') }];
