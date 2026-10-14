@@ -92,9 +92,9 @@ function aiPlan(){ /* combien d'images par vidéo pour rester sous AI_MAX */
  const n=Math.min(AI_MAX,np+nv*f);
  return {its,f,n}}
 function aiEstimate(n){ /* images ~576×768 */
- const inp=n*aiTok(576,768)+2200,out=1600;
+ const inp=n*aiTok(576,768)+2200,out=3000;
  return (inp*AI_PRICE.in+out*AI_PRICE.out)/1e6}
-function aiCorrEstimate(){return (3500*AI_PRICE.in+900*AI_PRICE.out)/1e6}
+function aiCorrEstimate(){return (3500*AI_PRICE.in+1800*AI_PRICE.out)/1e6}
 
 /* une image réduite (jpeg) depuis une photo ou une image d'une vidéo */
 function aiJpeg(src,w,h,side){

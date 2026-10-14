@@ -134,7 +134,8 @@ async function ask(key, system, tool, content) {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
-        model, max_tokens: 2500, system,
+        model, max_tokens: 12000, system,
+        output_config: { effort: env('CLAUDE_EFFORT') || 'medium' },
         tools: [tool], tool_choice: { type: 'auto' },
         messages: [{ role: 'user', content }]
       })

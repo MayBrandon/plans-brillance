@@ -158,7 +158,7 @@ async function rsAuto(R,cons){
  if(!fr.length){$('#aipg').textContent='Impossible d’extraire des images de ce rush.';return}
  rsValid(R,fr,dur,cons,ph)}
 function rsValid(R,fr,dur,cons,ph){
- const est=()=>{const k=fr.filter(x=>!x.off);return (k.reduce((a,x)=>a+aiTok(x.w,x.h),0)+1800)*AI_PRICE.in/1e6+900*AI_PRICE.out/1e6};
+ const est=()=>{const k=fr.filter(x=>!x.off);return (k.reduce((a,x)=>a+aiTok(x.w,x.h),0)+1800)*AI_PRICE.in/1e6+2500*AI_PRICE.out/1e6};
  $('#app').innerHTML=aiHead('Découpage automatique',sess.name)+`<div class="ai-scr">
   <h2>Ces images vont être envoyées</h2>
   <div class="hint" style="margin:0"><b id="ain"></b> tirées du rush (${Math.round(dur)} s), phase ${esc(PH[ph])}. La vidéo reste sur ton téléphone.${cons?`<br>Ta consigne : « ${esc(cons)} »`:''}</div>
