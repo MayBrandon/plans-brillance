@@ -88,6 +88,7 @@ export default async (req) => {
   const key = env('ANTHROPIC_API_KEY');
   if (!key) return out({ error: 'nokey' }, 503);
   if (b.mode === 'ping') return out({ ok: true });
+  if (b.mode === 'decoupe') return decoupe(b, key);
 
   /* 3. contenu */
   const medias = Array.isArray(b.medias) ? b.medias.slice(0, MAX_MEDIA) : [];
@@ -121,7 +122,11 @@ export default async (req) => {
     content.push({ type: 'text', text: 'Propose le montage.' });
   }
 
-  /* 4. appel à Claude */
+  return ask(key, SYSTEM, TOOL, content);
+};
+
+/* appel à Claude (outil forcé) + coût réel */
+async function ask(key, system, tool, content) {
   const model = env('CLAUDE_MODEL') || 'claude-sonnet-5-5';
   let r, j;
   try {
@@ -129,14 +134,13 @@ export default async (req) => {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
-        model, max_tokens: 2500, system: SYSTEM,
-        tools: [TOOL], tool_choice: { type: 'tool', name: TOOL.name },
+        model, max_tokens: 2500, system,
+        tools: [tool], tool_choice: { type: 'tool', name: tool.name },
         messages: [{ role: 'user', content }]
       })
     });
     j = await r.json().catch(() => ({}));
   } catch { return out({ error: 'network' }, 502) }
-
   if (!r.ok) {
     const msg = String(j?.error?.message || '');
     if (/credit|balance|billing/i.test(msg)) return out({ error: 'credits' }, 402);
@@ -150,4 +154,66 @@ export default async (req) => {
   const cost = ((u.input_tokens || 0) * pr[0] + (u.output_tokens || 0) * pr[1]) / 1e6;
   if (!tu) return out({ error: 'empty', cost }, 502);
   return out({ prop: tu.input, cost, usage: { in: u.input_tokens || 0, out: u.output_tokens || 0 }, model });
+}
+
+/* ---------- découpage automatique d'un rush ---------- */
+const TOOL_CUT = {
+  name: 'decouper_rush',
+  description: 'Renvoie les passages à garder dans le rush, un par zone.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      titre: { type: 'string', description: 'Titre court de la vidéo (max 40 caractères).' },
+      passages: {
+        type: 'array', description: 'Un passage par zone vue dans le rush (au plus un par zone), dans l’ordre du montage : l’accroche en premier.',
+        items: {
+          type: 'object',
+          properties: {
+            zone: { type: 'string', description: 'Identifiant de zone fourni.' },
+            debut: { type: 'number', description: 'Début en secondes dans le rush.' },
+            fin: { type: 'number', description: 'Fin en secondes (2 à 4 s après le début).' },
+            texte: { type: 'string', description: 'Texte court à l’écran (max 28 caractères), en général le nom de la zone.' },
+            vu: { type: 'string', description: 'Ce qu’on voit, en quelques mots.' }
+          },
+          required: ['zone', 'debut', 'fin', 'texte', 'vu']
+        }
+      }
+    },
+    required: ['titre', 'passages']
+  }
 };
+const SYSTEM_CUT = `Tu es le monteur vidéo d'Atelier Brillance (nettoyage à domicile, Amiens et alentours).
+Tu reçois des images extraites d'un rush filmé avec des lunettes (vue à la première personne), chacune avec son minutage dans le rush, et la liste des zones du véhicule ou du logement.
+But : une vidéo courte « état des lieux » qui montre l'état AVANT nettoyage, zone par zone, comme un teaser.
+Règles :
+- Pour chaque zone réellement visible, choisis LE meilleur passage : saleté bien visible, image nette et stable, cadrage lisible. 2 à 4 secondes.
+- Au plus un passage par zone. N'invente pas une zone que tu ne vois pas. 3 à 7 passages en tout.
+- Les passages ne doivent pas se chevaucher.
+- Évite tout moment où l'on voit une plaque d'immatriculation lisible, un visage ou des papiers.
+- Le premier passage est l'accroche : le plus frappant (plus sale, plus surprenant). Les suivants dans l'ordre du rush.
+- Textes : courts, en français, sans emoji.
+- Utilise uniquement les identifiants de zones fournis.
+Réponds uniquement avec l'outil decouper_rush.`;
+
+async function decoupe(b, key) {
+  const zones = (Array.isArray(b.zones) ? b.zones : []).slice(0, 60).map(z => ({ id: clean(z.id, 40), l: clean(z.l, 60) }));
+  const frames = (Array.isArray(b.images) ? b.images : []).slice(0, MAX_IMG);
+  const duree = Math.max(1, Math.min(3600, Number(b.duree) || 0));
+  if (!zones.length || !frames.length) return out({ error: 'bad' }, 400);
+  const content = [{ type: 'text', text: [
+    `Nettoyage : ${clean(b.titre, 80)} (${clean(b.prestation, 60)})`,
+    `Phase : ${clean(b.phase, 12).toUpperCase()} · durée du rush : ${duree.toFixed(1)} s`,
+    `Zones possibles (id — nom) :\n${zones.map(z => `${z.id} — ${z.l}`).join('\n')}`,
+    b.consigne ? `Consigne de l'utilisateur : « ${clean(b.consigne, 600)} »` : ''
+  ].filter(Boolean).join('\n\n') }];
+  let n = 0;
+  for (const f of frames) {
+    if (typeof f.data !== 'string' || f.data.length > MAX_IMG_B64 || !/^[A-Za-z0-9+/=]+$/.test(f.data)) continue;
+    content.push({ type: 'text', text: `t = ${Number(f.t || 0).toFixed(1)} s` });
+    content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: f.data } });
+    n++;
+  }
+  if (!n) return out({ error: 'bad' }, 400);
+  content.push({ type: 'text', text: 'Choisis les passages.' });
+  return ask(key, SYSTEM_CUT, TOOL_CUT, content);
+}
