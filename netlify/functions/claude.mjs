@@ -127,7 +127,7 @@ export default async (req) => {
 
 /* appel à Claude (outil forcé) + coût réel */
 async function ask(key, system, tool, content) {
-  const model = env('CLAUDE_MODEL') || 'claude-sonnet-5-5';
+  const model = env('CLAUDE_MODEL') || 'claude-opus-5-5';
   let r, j;
   try {
     r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -157,7 +157,7 @@ async function ask(key, system, tool, content) {
     if (a >= 0 && z > a) { try { tu = { input: JSON.parse(txt.slice(a, z + 1)) } } catch {} }
   }
   const u = j.usage || {};
-  const pr = PRICE[model] || PRICE['claude-sonnet-5-5'];
+  const pr = PRICE[model] || PRICE['claude-opus-5-5'];
   const cost = ((u.input_tokens || 0) * pr[0] + (u.output_tokens || 0) * pr[1]) / 1e6;
   if (!tu) return out({ error: 'empty', cost }, 502);
   return out({ prop: tu.input, cost, usage: { in: u.input_tokens || 0, out: u.output_tokens || 0 }, model });

@@ -163,7 +163,7 @@ function rsValid(R,fr,dur,cons,ph){
   <h2>Ces images vont être envoyées</h2>
   <div class="hint" style="margin:0"><b id="ain"></b> tirées du rush (${Math.round(dur)} s), phase ${esc(PH[ph])}. La vidéo reste sur ton téléphone.${cons?`<br>Ta consigne : « ${esc(cons)} »`:''}</div>
   <div class="ai-grid" id="aigr">${fr.map((x,j)=>`<button data-j="${j}" aria-label="${rsFmt(x.t)}"><img src="${x.url}" alt=""><span style="position:absolute;left:4px;bottom:3px;font:600 10px var(--font-mono);color:#fff;text-shadow:0 1px 2px #000">${rsFmt(x.t)}</span></button>`).join('')}</div>
-  <div class="ai-box"><div><span>Modèle</span><b>Sonnet · rapide et économique</b></div><div><span>Coût estimé</span><b id="aic1" style="color:var(--cyan)"></b></div><div><span>Dépensé ce mois</span><b>${aiSpent().usd.toFixed(2).replace('.',',')} $</b></div></div>
+  <div class="ai-box"><div><span>Modèle</span><b>Opus 5.5 · le plus précis</b></div><div><span>Coût estimé</span><b id="aic1" style="color:var(--cyan)"></b></div><div><span>Dépensé ce mois</span><b>${aiSpent().usd.toFixed(2).replace('.',',')} $</b></div></div>
   <div class="ai-warn">Vérifie qu’on ne voit pas de plaque, de visage ou de papiers. Touche une image pour la retirer de l’envoi.</div>
   <div class="ai-act"><button class="primary" id="aiok"></button><button id="aino">Annuler</button></div></div>`;
  const draw=()=>{const k=fr.filter(x=>!x.off).length;$('#ain').textContent=`${k} image${k>1?'s':''}`;$('#aic1').textContent='≈ '+aiEur(est());

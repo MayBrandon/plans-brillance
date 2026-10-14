@@ -5,7 +5,7 @@
    La carte n'apparaît que si un espace pro est connecté ; la fonction Netlify vérifie en plus le compte. */
 
 const AI_FN='/.netlify/functions/claude';
-const AI_PRICE={in:2,out:10};            /* Sonnet, $ par million de jetons */
+const AI_PRICE={in:4,out:20};            /* Opus 5.5, $ par million de jetons */
 const AI_MAX=48, AI_SIDE=768, AI_PAYLOAD=4.6e6;
 const AI={status:null,imgs:[],medias:[],ids:{},busy:false,th:new Map()};
 
@@ -183,7 +183,7 @@ function aiValid(){
   <h2>Ces images vont être envoyées</h2>
   <div class="hint" style="margin:0"><b id="ain"></b> tirées de ${nv} plan${nv>1?'s':''}. Les vidéos restent sur ton téléphone : seules quelques images réduites partent.${AI.cons?`<br>Ta consigne : « ${esc(AI.cons)} »`:''}</div>
   <div class="ai-grid" id="aigr">${AI.imgs.map((x,j)=>`<button data-j="${j}" class="${x.off?'off':''}" aria-label="${esc(PH[x.ph]+' · '+x.z)}"><img src="${x.url}" alt=""></button>`).join('')}</div>
-  <div class="ai-box"><div><span>Modèle</span><b>Sonnet · rapide et économique</b></div><div><span>Coût estimé</span><b id="aic1" style="color:var(--cyan)"></b></div><div><span>Dépensé ce mois</span><b id="aisp"></b></div></div>
+  <div class="ai-box"><div><span>Modèle</span><b>Opus 5.5 · le plus précis</b></div><div><span>Coût estimé</span><b id="aic1" style="color:var(--cyan)"></b></div><div><span>Dépensé ce mois</span><b id="aisp"></b></div></div>
   <div class="ai-warn">Vérifie qu’on ne voit pas de plaque, de visage ou de papiers. Touche une image pour la retirer de l’envoi.</div>
   <div class="hint" id="aier" style="margin:12px 0 0;display:none"></div>
   <div class="ai-act"><button class="primary" id="aiok"></button><button id="aino">Annuler</button></div></div>`;
