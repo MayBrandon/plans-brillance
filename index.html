@@ -137,6 +137,19 @@ button.danger{background:var(--red);color:#06110f;font-weight:700;border-color:t
 button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #toast{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--cyan);color:var(--foam);padding:10px 16px;border-radius:20px;z-index:50;display:none;max-width:90vw;text-align:center}
 
+/* --- check-list du PENDANT (auto) --- */
+.ckl{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+.cki{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:2px}
+.cki .ckb{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:transparent;border:0;padding:12px;font-size:15px;color:var(--foam);box-shadow:none}
+.cki .ckb svg.i{flex:0 0 auto;width:24px;height:24px;margin:0;color:var(--muted)}
+.cki .ckb small{display:block;color:var(--amber);font-size:.78rem;margin-top:2px}
+.cki.ok{border-color:var(--cyan)}.cki.ok .ckb svg.i{color:var(--cyan)}.cki.ok .ckb>span{opacity:.75}.cki.ok .ckb small{color:var(--cyan)}
+.cki.blk:not(.ok){border-color:var(--red)}.cki.blk:not(.ok) .ckb{font-weight:700}.cki.blk:not(.ok) .ckb svg.i{color:var(--red)}
+.cki.off{opacity:.4}
+.cki .tg{margin:0 10px 10px;grid-template-columns:repeat(4,1fr)}
+.ckw{text-align:center;color:var(--red);font-weight:600;font-size:14px;margin-bottom:12px}
+.ckw svg.i{vertical-align:-.25em;margin-right:.3em}
+
 /* --- étapes, conseils, référence avant, stockage, avant/après --- */
 .hub{grid-template-columns:repeat(3,1fr);gap:10px;padding:20px 16px 6px}
 .sq{border-radius:20px;padding:8px 4px;gap:2px}
@@ -434,6 +447,51 @@ const Z={
  'p-finition':{g:'Plans d’action',l:'Finitions (soufflage)',e:'wind',t:'Soufflette dans les aérations et les rails : la poussière qui s’envole.'},
  'p-ext':{g:'Plans d’action',l:'Lavage extérieur',e:'drop',t:'La mousse qui recouvre la carrosserie, puis le rinçage, en plan large.'},
  'p-jantes':{g:'Plans d’action',l:'Jantes',e:'wheel',t:'Gros plan sur une jante : le produit qui agit, puis le rinçage.'},
+ /* Auto : check-list du PENDANT (ck = points à faire ; ph = photo de contrôle obligatoire ; blk = bloquant) */
+ 'k-aspi':{g:'Étape 1 · Aspiration à sec',l:'Aspiration',e:'vacuum',t:'Plan d’action : vidéo de 5 à 8 secondes en gros plan, la saleté qui disparaît sous l’embout.',ck:[
+  {id:'sols',l:'Sols avant et arrière, sous les sièges'},
+  {id:'rails',l:'Rails de sièges, entre siège et console'},
+  {id:'sieges',l:'Sièges et dossiers'},
+  {id:'dos-ar',l:'Dos des sièges arrière',ph:1},
+  {id:'range',l:'Vide-poches, porte-gobelets, bacs de portes'},
+  {id:'coffre',l:'Coffre'}]},
+ 'k-sieges':{g:'Étape 2 · Sièges',l:'Sièges',e:'brush',t:'Plan d’action : le produit, puis la brosse qui fait mousser, puis l’extraction.',ck:[
+  {id:'produit',l:'Bon produit : tissu ou cuir, bien dilué'},
+  {id:'avant',l:'Sièges avant'},
+  {id:'arriere',l:'Banquette arrière'},
+  {id:'appuie',l:'Appuie-têtes'}]},
+ 'k-moquette':{g:'Étape 3 · Moquette',l:'Moquette',e:'sponge',t:'Plan d’action : une moitié faite, une moitié pas (la ligne de contraste), puis l’eau sale récupérée.',ck:[
+  {id:'sac',l:'Sac de l’aspirateur RETIRÉ avant d’aspirer de l’humide',blk:1},
+  {id:'shamp',l:'Shampouinage'},
+  {id:'brosse',l:'Brossage'},
+  {id:'extract',l:'Extraction'}]},
+ 'k-plastiques':{g:'Étape 4 · Plastiques',l:'Plastiques',e:'spray',t:'Plan d’action : APC pulvérisé, scrub, puis la microfibre humide puis sèche.',ck:[
+  {id:'tdb',l:'Tableau de bord'},
+  {id:'console',l:'Côtés de la console centrale',ph:1},
+  {id:'accoudoir',l:'Sous l’accoudoir',ph:1},
+  {id:'aerations',l:'Bouches d’aération',ph:1},
+  {id:'commandes',l:'Volant, levier, commandes'},
+  {id:'contreportes',l:'Contre-portes'},
+  {id:'micro',l:'Microfibre humide puis sèche partout'}]},
+ 'k-montants':{g:'Étape 5 · Montants de porte',l:'Montants de porte',e:'pillar',t:'Plan d’action : gros plan sur le seuil et les charnières pendant l’essuyage.',ck:[
+  {id:'montants',l:'Les 4 montants'},
+  {id:'seuils',l:'Les seuils'}]},
+ 'k-coffre':{g:'Étape 6 · Coffre',l:'Coffre',e:'trunk',t:'Plan d’action : le plancher du coffre, filmé depuis l’extérieur.',ck:[
+  {id:'plast',l:'Plastiques du coffre'},
+  {id:'moq',l:'Moquette du coffre'}]},
+ 'k-tapis':{g:'Étape 7 · Tapis (à part)',l:'Tapis de voiture',e:'floor-pass',t:'Plan d’action : tapis posés au sol, le brossage puis le résultat.',ck:[
+  {id:'tapis',l:'Tapis nettoyés'},
+  {id:'remis',l:'Tapis remis en place, secs'}]},
+ 'k-finitions':{g:'Étape 8 · Finitions',l:'Finitions',e:'wind',t:'Plan d’action : le Tornador dans les aérations et les recoins, la poussière qui s’envole.',ck:[
+  {id:'tornador',l:'Tornador'},
+  {id:'parebrise',l:'Pare-brise intérieur',ph:1},
+  {id:'vitres',l:'Vitres'},
+  {id:'retros',l:'Rétroviseurs'}]},
+ 'k-ext':{g:'Extérieur',l:'Lavage extérieur',e:'drop',t:'Plan d’action : la mousse sur la carrosserie, puis le rinçage, en plan large.',ck:[
+  {id:'lavage',l:'Lavage et rinçage carrosserie'},
+  {id:'sechage',l:'Séchage'}]},
+ 'k-jantes':{g:'Extérieur',l:'Jantes',e:'wheel',t:'Plan d’action : gros plan sur une jante, le produit qui agit puis le rinçage.',ck:[
+  {id:'jantes',l:'Les 4 jantes'}]},
  /* Canapé / fauteuil */
  'c-ens':{g:'Canapé',l:'Vue d’ensemble',e:'sofa',t:'Bien de face, à hauteur d’assise : le canapé entier dans le cadre.'},
  'c-34':{g:'Canapé',l:'Vue de trois quarts',e:'sofa',t:'Depuis un angle de la pièce, pour montrer le volume.'},
@@ -530,13 +588,13 @@ const Z={
  'ap-linge':{g:'Plans d’action',l:'Changement du linge',e:'bed',t:'Les draps propres qu’on déplie sur le lit.'},
 };
 const AUTO_AB=['ext-av','ext-ar','int-large','cd-porte','cd-siege','cd-sol','cp-porte','cp-siege','cp-sol','ar-g-porte','ar-g-sol','banquette','ar-d-porte','ar-d-sol','coffre','tdb','volant','console','ciel','aeration'];
-const AUTO_PD=['p-aspi','p-sieges','p-moquette','p-eau','p-plastiques','p-montants','p-coffre','p-tapis','p-vitres','p-finition','p-ext','p-jantes'];
+const AUTO_PD=['k-aspi','k-sieges','k-moquette','k-plastiques','k-montants','k-coffre','k-tapis','k-finitions','k-ext','k-jantes'];
 const TEX_PD=['t-aspi','t-pre','t-brosse','t-extraction','t-eau'];
 /* Listes selon la prestation */
 const TPL={
  'auto-complet':{fam:'auto',l:'Auto · Complet',d:'Intérieur et extérieur',ab:AUTO_AB,pd:AUTO_PD},
- 'auto-interieur':{fam:'auto',l:'Auto · Intérieur',d:'Sans les extérieurs',ab:AUTO_AB.filter(x=>!x.startsWith('ext-')),pd:AUTO_PD.filter(x=>x!=='p-ext'&&x!=='p-jantes')},
- 'auto-express':{fam:'auto',l:'Auto · Express',d:'Les plans essentiels',ab:['ext-av','int-large','cd-siege','cd-sol','cp-siege','banquette','coffre','tdb'],pd:['p-aspi','p-plastiques','p-vitres']},
+ 'auto-interieur':{fam:'auto',l:'Auto · Intérieur',d:'Sans les extérieurs',ab:AUTO_AB.filter(x=>!x.startsWith('ext-')),pd:AUTO_PD.filter(x=>x!=='k-ext'&&x!=='k-jantes')},
+ 'auto-express':{fam:'auto',l:'Auto · Express',d:'Les plans essentiels',ab:['ext-av','int-large','cd-siege','cd-sol','cp-siege','banquette','coffre','tdb'],pd:['k-aspi','k-plastiques','k-finitions']},
  'canape':{fam:'canape',l:'Canapé / fauteuil',d:'Textile à domicile',ab:['c-ens','c-34','c-assise','c-dossier','c-acc-g','c-acc-d','c-coussins','c-tache'],pd:TEX_PD},
  'matelas':{fam:'matelas',l:'Matelas',d:'Textile à domicile',ab:['m-ens','m-tete','m-pieds','m-bords','m-tache'],pd:TEX_PD},
  'tapis':{fam:'tapis',l:'Tapis',d:'Textile à domicile',ab:['r-ens','r-fibres','r-bords','r-tache'],pd:TEX_PD},
@@ -588,7 +646,7 @@ async function delSession(id){const ms=await getMedia(id);for(const m of ms)awai
 
 /* ---------- État ---------- */
 const $=s=>document.querySelector(s);
-let sess=null, media=[], phase='avant', cur=null, urls=[], idx=0, curAct='auto';
+let sess=null, media=[], phase='avant', cur=null, curCk=null, urls=[], idx=0, curAct='auto';
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function customZones(){try{const a=JSON.parse(lsGet('zonesPerso','[]'));return Array.isArray(a)?a:[]}catch(e){return []}}
@@ -597,7 +655,8 @@ const tpl=()=>tplOf(sess);
 function zonesFor(ph){
  const t=tpl(),k=ph==='pendant'?'pd':'ab';
  const ids=[...(ph==='avant'&&t.av||[]),...t[k],...(ph==='apres'&&t.ap||[])];
- return [...ids.map(id=>({id,...Z[id]})),...customZones().filter(c=>(c.fam||'auto')===t.fam&&(c.ph||'ab')===k).map(z=>({...z,g:'Mes plans libres'}))]}
+ const old=[...new Set(media.filter(m=>m.phase===ph&&!ids.includes(m.zone)&&Z[m.zone]).map(m=>m.zone))];
+ return [...[...ids,...old].map(id=>({id,...Z[id]})),...customZones().filter(c=>(c.fam||'auto')===t.fam&&(c.ph||'ab')===k).map(z=>({...z,g:'Mes plans libres'}))]}
 const allZones=()=>zonesFor(phase);
 function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',2600)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -630,7 +689,13 @@ function infoDlg(title,html,btn='Fermer'){return new Promise(res=>{
 function revoke(){urls.forEach(URL.revokeObjectURL);urls=[]}
 const url=b=>{const u=URL.createObjectURL(b);urls.push(u);return u};
 function count(z,ph){const m=media.filter(x=>x.zone===z&&x.phase===ph);return{p:m.filter(x=>x.type==='photo').length,v:m.filter(x=>x.type==='video').length,all:m}}
-const doneCount=ph=>zonesFor(ph).filter(z=>count(z.id,ph).all.length).length;
+/* ---------- Check-list du PENDANT (auto) ---------- */
+const hasCk=()=>tpl().fam==='auto';
+const ckKey=(z,it)=>z.id+':'+it.id;
+function ckOk(z,it){const k=ckKey(z,it);return it.ph?media.some(m=>m.ck===k&&m.phase==='pendant'):!!(sess.ck&&sess.ck[k])}
+const ckLeft=z=>(z.ck||[]).filter(it=>!ckOk(z,it));
+function zoneDone(z,ph){return ph==='pendant'&&z.ck?!ckLeft(z).length:!!count(z.id,ph).all.length}
+const doneCount=ph=>zonesFor(ph).filter(z=>zoneDone(z,ph)).length;
 
 /* ---------- Marque & thème ---------- */
 const isLight=()=>document.documentElement.getAttribute('data-theme')==='light';
@@ -700,7 +765,7 @@ function howDlg(first){
  return infoDlg(first?'Bienvenue sur Plans Brillance':'Comment ça marche',`<ol>
  <li><b>Choisis ton activité</b> dans la barre en bas : auto, textiles, maison, Airbnb, vitres ou pro. Puis crée un nettoyage et choisis la prestation.</li>
  <li><b>AVANT</b> : swipe de plan en plan et prends une photo ou une vidéo à chaque écran. Un conseil de cadrage t’aide sur chacun.</li>
- <li><b>PENDANT</b> (facultatif) : filme les plans d’action, comme l’aspiration ou l’eau sale.</li>
+ <li><b>PENDANT</b> : en auto, suis la check-list étape par étape (aspiration, sièges, moquette, plastiques…). Les points souvent oubliés demandent une photo de contrôle, et l’APRÈS ne s’ouvre que quand tout est coché. Ailleurs, filme les plans d’action (facultatif).</li>
  <li><b>APRÈS</b> : l’app te remontre ta photo d’avant pour reprendre le même angle.</li>
  <li><b>Exporte</b> : les fichiers sortent nommés dans l’ordre, prêts pour le montage. Tu peux aussi créer une image avant/après à poster.</li>
  <li><b>Monte</b> : « Créer une vidéo » assemble tes plans dans l’ordre avec le style de ton choix (doux, dur, brut, édit, avant/après, lunettes Meta), ta musique et des sous-titres, en story, post 4:5 ou carré.</li>
@@ -747,13 +812,15 @@ function hub(){
  revoke();
  const t=tpl(),f=FAM[t.fam],un=!!sess.avantDone;
  const tile=(id,cls,ph,ic)=>{
-  const locked=ph!=='avant'&&!un,zs=zonesFor(ph);
+  const lockP=ph==='apres'&&un&&hasCk()&&!sess.pendantDone;
+  const locked=(ph!=='avant'&&!un)||lockP,zs=zonesFor(ph);
   const mark=sess[ph+'Done']?`<span class="ck">${ico('check-circle')}</span>`:locked?`<span class="ck">${ico('lock')}</span>`:'';
-  return `<button class="sq ${cls} ${locked?'lock':''}" id="${id}">${mark}<span class="em">${ico(ic)}</span><strong>${PH[ph]}</strong><small>${locked?'Après l’avant':doneCount(ph)+'/'+zs.length+' plans'}</small></button>`};
+  const unit=ph==='pendant'&&hasCk()?' étapes':' plans';
+  return `<button class="sq ${cls} ${locked?'lock':''}" id="${id}">${mark}<span class="em">${ico(ic)}</span><strong>${PH[ph]}</strong><small>${lockP?'Après le pendant':locked?'Après l’avant':doneCount(ph)+'/'+zs.length+unit}</small></button>`};
  let h=`<header><div class="row"><button id="back" class="ic-only" aria-label="Retour">${ico('back')}</button><div class="sp ht"><b>${esc(sess.name)}</b><small>${esc(t.l)}</small></div><button id="ren" class="ic-only" aria-label="Renommer">${ico('edit')}</button></div></header>
  <div class="hub">${tile('sqA','a','avant',f.a)}${tile('sqP','c','pendant','spray')}${tile('sqB','b','apres',f.b)}</div>
  ${linkLine(sess)}
- <div class="hint" style="text-align:center"><b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.</div>`;
+ <div class="hint" style="text-align:center">${hasCk()?'<b>AVANT</b> avant de commencer, <b>PENDANT</b> : la check-list à suivre étape par étape avec les photos de contrôle, <b>APRÈS</b> quand tout est coché.':'<b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.'}</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
  h+=`<div class="wrap" style="margin-top:10px"><button id="mtb" style="width:100%;padding:16px">${ico('film')} Créer une vidéo (montage auto)</button></div>`;
  h+=`<div class="wrap" style="margin-top:10px"><button id="rsb" style="width:100%;padding:16px">${ico('video')} Découper un rush (lunettes Meta)</button></div>`;
@@ -765,7 +832,7 @@ function hub(){
  $('#sqA').onclick=()=>startFlow('avant');
  const locked=()=>{if(!sess.avantDone){toast('Termine d’abord l’AVANT');return true}return false};
  $('#sqP').onclick=()=>{if(!locked())startFlow('pendant')};
- $('#sqB').onclick=()=>{if(!locked())startFlow('apres')};
+ $('#sqB').onclick=()=>{if(locked())return;if(hasCk()&&!sess.pendantDone){toast('Termine d’abord la check-list du PENDANT');return}startFlow('apres')};
  const e=$('#exp');if(e)e.onclick=exportDlg;
  const b=$('#ba');if(b)b.onclick=baDlg;
  const rb=$('#rsb');if(rb)rb.onclick=()=>{if(typeof rsOpen==='function')rsOpen();else toast('Recharge l’app')};
@@ -776,7 +843,7 @@ function hub(){
 function startFlow(ph){
  phase=ph;
  const zs=allZones();
- const first=zs.findIndex(z=>!count(z.id,ph).all.length);
+ const first=zs.findIndex(z=>!zoneDone(z,ph));
  idx=first<0?0:first;
  renderFlow()}
 function renderFlow(){
@@ -814,8 +881,32 @@ function updHead(){
 }
 function thumb(m,rm){
  return `<div data-open="${esc(m.id)}">${m.type==='photo'?`<img src="${url(m.blob)}" alt="">`:`<video src="${url(m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">${ico('play')}</span>`}${rm?`<button class="x ic-only" data-rm="${esc(m.id)}" aria-label="Supprimer">${ico('x')}</button>`:''}</div>`}
+function ckHtml(z){
+ const blk=(z.ck||[]).find(it=>it.blk&&!ckOk(z,it));
+ const left=ckLeft(z).length;
+ let h=`<div class="ckl">`;
+ for(const it of z.ck){
+  const ok=ckOk(z,it),off=blk&&it!==blk,k=ckKey(z,it);
+  const shots=it.ph?media.filter(m=>m.ck===k&&m.phase==='pendant'):[];
+  h+=`<div class="cki ${ok?'ok':''} ${off?'off':''} ${it.blk?'blk':''}">
+   <button class="ckb" data-ck="${esc(k)}" ${it.ph?'data-ckph="1"':''} ${off?'disabled':''}>${ico(ok?'check-circle':it.ph?'camera':'circle')}<span>${esc(it.l)}${it.ph?`<small>${ok?'Photo de contrôle prise':'Photo de contrôle obligatoire : touche pour la prendre'}</small>`:''}</span></button>
+   ${shots.length?`<div class="tg">${shots.map(m=>thumb(m,true)).join('')}</div>`:''}</div>`}
+ h+=`</div>`;
+ const st=blk?`<div class="ckw">${ico('lock')} Coche d’abord : ${esc(blk.l)}</div>`
+  :left?`<div class="zc no">Encore ${left} point${left>1?'s':''} à faire dans cette étape</div>`:`<div class="zc ok">${ico('check-circle')}Étape terminée</div>`;
+ return {h,st,blk}}
 function slideHtml(z){
  const c=count(z.id,phase);
+ if(phase==='pendant'&&z.ck){
+  const k=ckHtml(z),acts=media.filter(m=>m.zone===z.id&&m.phase==='pendant'&&!m.ck);
+  return `<div class="big">${ico(z.e)}</div>
+  <h2 class="zn">${esc(z.l)}</h2><div class="zg">${esc(z.g)}</div>
+  ${k.st}${k.h}
+  ${k.blk?'':`<div class="lbl" style="margin-top:18px">Plans d’action pour le montage</div>
+  ${z.t?`<div class="tip">${ico('camera')}<span>${esc(z.t)}</span></div>`:''}
+  <div class="acts2"><button class="primary" data-a="photo" data-z="${esc(z.id)}">${ico('camera')} Photo</button><button class="primary" data-a="video" data-z="${esc(z.id)}">${ico('video')} Vidéo</button></div>
+  <button class="wide" data-a="import" data-z="${esc(z.id)}">${ico('import')} Importer (lunettes / galerie)</button>
+  ${acts.length?`<div class="tg">${acts.map(m=>thumb(m,true)).join('')}</div>`:''}`}`}
  const custom=String(z.id).startsWith('x-');
  /* à l'APRÈS : on remontre l'AVANT du même plan pour reprendre le même angle */
  let ref='';
@@ -833,6 +924,14 @@ function slideHtml(z){
  ${c.all.length?`<div class="tg">${c.all.map(m=>thumb(m,true)).join('')}</div>`:''}
  ${custom?`<button class="wide" style="background:transparent;color:var(--red)" data-delz="${esc(z.id)}">Supprimer ce plan libre</button>`:''}`}
 function finalHtml(zs){
+ if(phase==='pendant'&&hasCk()&&zs.some(z=>z.ck)){
+  const miss=zs.map((z,i)=>({z,i,l:z.ck?ckLeft(z):[]})).filter(o=>o.l.length);
+  const tot=zs.reduce((a,z)=>a+(z.ck||[]).length,0),left=miss.reduce((a,o)=>a+o.l.length,0);
+  return `<div class="big">${ico(left?'search':'check-circle')}</div>
+  <h2 class="zn">${tot-left}/${tot} points faits</h2>
+  <div class="zg">Check-list · PENDANT</div>
+  ${left?`<div style="color:var(--muted);font-size:14px;text-align:center">Points oubliés : touche pour y retourner.</div><div class="miss">${miss.map(o=>o.l.map(it=>`<button data-jump="${o.i}">${ico(it.ph?'camera':o.z.e)}${esc(it.l)}</button>`).join('')).join('')}</div>`:`<div class="zc ok">Tout est fait, bravo ! Tu peux passer à l’APRÈS.</div>`}
+  <button class="wide primary" style="padding:18px;font-size:17px" data-finish="1" ${left?'disabled':''}>${ico(left?'lock':'check-circle')} ${left?'Termine la check-list':'Terminer le PENDANT'}</button>`}
  const miss=zs.map((z,i)=>({z,i})).filter(o=>!count(o.z.id,phase).all.length);
  const n=zs.length,d=n-miss.length;
  const fin={avant:'l’avant',pendant:'les plans d’action',apres:'l’après'}[phase];
@@ -845,7 +944,16 @@ function finalHtml(zs){
 async function flowClick(e){
  const t=e.target;
  const a=t.closest('[data-a]');
- if(a){cur=a.dataset.z;const inp={photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a];if(inp)$(inp).click();return}
+ if(a){cur=a.dataset.z;curCk=null;const inp={photo:'#inPhoto',video:'#inVideo',import:'#inImport'}[a.dataset.a];if(inp)$(inp).click();return}
+ const ck=t.closest('[data-ck]');
+ if(ck){
+  if(ck.disabled)return;
+  const k=ck.dataset.ck;
+  if(ck.dataset.ckph){cur=k.split(':')[0];curCk=k;$('#inPhoto').click();return}
+  sess.ck=sess.ck||{};if(sess.ck[k])delete sess.ck[k];else sess.ck[k]=true;
+  await putSession(sess);renderFlow();
+  const z=allZones()[idx];if(sess.ck[k]&&z&&z.ck&&!ckLeft(z).length)toast('Étape terminée, passe à la suivante');
+  return}
  const rm=t.closest('[data-rm]');
  if(rm){e.stopPropagation();if(await askConfirm('Supprimer ce média ?')){await delMedia(rm.dataset.rm);media=media.filter(x=>x.id!==rm.dataset.rm);renderFlow()}return}
  const op=t.closest('[data-open]');
@@ -861,9 +969,10 @@ async function flowClick(e){
    lsSet('zonesPerso',JSON.stringify(customZones().filter(z=>z.id!==id)));
    idx=Math.min(idx,allZones().length);renderFlow()}return}
  if(t.closest('[data-finish]')){
+  if(phase==='pendant'&&hasCk()){const left=allZones().reduce((a,z)=>a+(z.ck?ckLeft(z).length:0),0);if(left){toast(`Il reste ${left} point${left>1?'s':''} à faire`);return}}
   sess[phase+'Done']=true;
   await putSession(sess);
-  toast({avant:'Avant terminé. Bon nettoyage !',pendant:'Plans d’action enregistrés.',apres:'Après terminé. Tu peux exporter.'}[phase]);
+  toast({avant:'Avant terminé. Bon nettoyage !',pendant:hasCk()?'Check-list terminée. Place à l’APRÈS !':'Plans d’action enregistrés.',apres:'Après terminé. Tu peux exporter.'}[phase]);
   hub();
   const r=await syncPhotos(sess);
   if(r==='ok'){toast('Case « Photos prises » cochée dans l’espace pro');hub()}else if(r)hub()}
@@ -877,12 +986,15 @@ async function addMedia(files){
   let ext=((f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,''))||(isV?'mov':'jpg'),blob=f;
   if(!isV){const c=await compressPhoto(f);blob=c.blob;if(c.ext)ext=c.ext;saved+=Math.max(0,f.size-blob.size)}
   const m={id:crypto.randomUUID(),sid:sess.id,zone:cur,phase,type:isV?'video':'photo',blob,ext,ts:Date.now()+n++};
+  if(curCk&&!isV&&phase==='pendant')m.ck=curCk;
   try{await putMedia(m);media.push(m);ok++}
   catch(e){
    renderFlow();
    infoDlg('Plus assez de place',`<p>Ce fichier n’a pas pu être enregistré : le stockage de l’appareil ou du navigateur est plein.</p><p>Exporte un ancien nettoyage, supprime-le depuis l’accueil, puis recommence.</p>`);
    return}}
+ const wasCk=curCk;curCk=null;
  renderFlow();
+ if(wasCk&&ok){toast('Photo de contrôle enregistrée');return}
  const si=await storageInfo();
  if(si.quota&&si.used/si.quota>.85)toast('Stockage presque plein : exporte puis supprime un ancien nettoyage');
  else toast(`${ok} ajouté(s)`+(saved>300000?` · ${fmtSize(saved)} économisés`:''))}
@@ -895,7 +1007,7 @@ function showMedia(id){
  $('#cl').onclick=()=>d.close();d.showModal()}
 function listDlg(){
  const zs=allZones();const d=$('#dlg');
- d.innerHTML=`<h3 style="margin-top:0">Tous les plans · ${PH[phase]}</h3><div class="lst">${zs.map((z,i)=>`<button data-j="${i}">${ico(z.e)}<span>${esc(z.l)}</span><span class="d ${count(z.id,phase).all.length?'on':'off'}">${ico(count(z.id,phase).all.length?'check-circle':'circle')}</span></button>`).join('')}<button data-j="${zs.length}">${ico('clipboard')}<span>Récapitulatif</span></button></div><button id="cl" style="width:100%">Fermer</button>`;
+ d.innerHTML=`<h3 style="margin-top:0">${phase==='pendant'&&hasCk()?'Toutes les étapes':'Tous les plans'} · ${PH[phase]}</h3><div class="lst">${zs.map((z,i)=>`<button data-j="${i}">${ico(z.e)}<span>${esc(z.l)}</span><span class="d ${zoneDone(z,phase)?'on':'off'}">${ico(zoneDone(z,phase)?'check-circle':'circle')}</span></button>`).join('')}<button data-j="${zs.length}">${ico('clipboard')}<span>Récapitulatif</span></button></div><button id="cl" style="width:100%">Fermer</button>`;
  d.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{d.close();goTo(+b.dataset.j)});
  $('#cl').onclick=()=>d.close();d.showModal()}
 function addZone(cb){
