@@ -89,6 +89,7 @@ export default async (req) => {
   if (!key) return out({ error: 'nokey' }, 503);
   if (b.mode === 'ping') return out({ ok: true });
   if (b.mode === 'decoupe') return decoupe(b, key);
+  if (b.mode === 'flyer') return flyer(b, key);
 
   /* 3. contenu */
   const medias = Array.isArray(b.medias) ? b.medias.slice(0, MAX_MEDIA) : [];
@@ -178,13 +179,14 @@ const TOOL_CUT = {
         items: {
           type: 'object',
           properties: {
+            source: { type: 'string', description: 'Identifiant de la source (v1, v2… pour une vidéo, p1, p2… pour une photo).' },
             zone: { type: 'string', description: 'Identifiant de zone fourni.' },
-            debut: { type: 'number', description: 'Début en secondes dans le rush.' },
-            fin: { type: 'number', description: 'Fin en secondes (2 à 4 s après le début).' },
+            debut: { type: 'number', description: 'Début en secondes dans la vidéo source (0 pour une photo).' },
+            fin: { type: 'number', description: 'Fin en secondes (2 à 4 s après le début ; pour une photo : durée d’affichage, 1.5 à 3).' },
             texte: { type: 'string', description: 'Texte court à l’écran (max 28 caractères), en général le nom de la zone.' },
             vu: { type: 'string', description: 'Ce qu’on voit, en quelques mots.' }
           },
-          required: ['zone', 'debut', 'fin', 'texte', 'vu']
+          required: ['source', 'zone', 'debut', 'fin', 'texte', 'vu']
         }
       }
     },
@@ -192,12 +194,12 @@ const TOOL_CUT = {
   }
 };
 const SYSTEM_CUT = `Tu es le monteur vidéo d'Atelier Brillance (nettoyage à domicile, Amiens et alentours).
-Tu reçois des images extraites d'un rush filmé avec des lunettes (vue à la première personne), chacune avec son minutage dans le rush, et la liste des zones du véhicule ou du logement.
+Tu reçois des images extraites d'une ou plusieurs sources : vidéos filmées avec des lunettes (vue à la première personne) ou au téléphone, et parfois des photos. Chaque image indique sa source (v1, v2… ou p1, p2…) et, pour une vidéo, son minutage. Les sources sont numérotées dans l'ordre chronologique de prise de vue (les lunettes coupent à 5 minutes, donc une même séance peut tenir sur plusieurs vidéos, en alternance avec le téléphone). Tu reçois aussi la liste des zones du véhicule ou du logement.
 But par défaut : une vidéo courte « état des lieux » qui montre l'état AVANT nettoyage, zone par zone, comme un teaser (sauf si le message précise un autre but).
 Règles :
 - Pour chaque zone réellement visible, choisis LE meilleur passage : saleté bien visible, image nette et stable, cadrage lisible. 2 à 4 secondes.
 - Au plus un passage par zone (une zone = un identifiant). N'invente pas une zone que tu ne vois pas. 3 à 7 passages sauf indication contraire.
-- Les passages ne doivent pas se chevaucher.
+- Dans une même vidéo, les passages ne doivent pas se chevaucher. Si plusieurs sources montrent la même zone, garde la meilleure (nette, bien cadrée). Une photo peut servir de plan (surtout pour un avant/après net).
 - Évite tout moment où l'on voit une plaque d'immatriculation lisible, un visage ou des papiers.
 - Le premier passage est l'accroche : le plus frappant (plus sale, plus surprenant, ou le résultat le plus bluffant). Les suivants dans l'ordre logique (avant → pendant → après), sinon dans l'ordre du rush.
 - Textes : courts, en français, sans emoji.
@@ -219,14 +221,50 @@ async function decoupe(b, key) {
     `Zones possibles (id — nom) :\n${zones.map(z => `${z.id} — ${z.l}`).join('\n')}`,
     b.consigne ? `Consigne de l'utilisateur : « ${clean(b.consigne, 600)} »` : ''
   ].filter(Boolean).join('\n\n') }];
+  const sources = (Array.isArray(b.sources) ? b.sources : []).slice(0, 40);
+  if (sources.length) content.push({ type: 'text', text: `Sources (ordre chronologique) :\n${sources.map(x => `${clean(x.id, 6)} — ${x.type === 'photo' ? 'photo' : `vidéo de ${Number(x.duree || 0).toFixed(1)} s`}`).join('\n')}` });
   let n = 0;
   for (const f of frames) {
     if (typeof f.data !== 'string' || f.data.length > MAX_IMG_B64 || !/^[A-Za-z0-9+/=]+$/.test(f.data)) continue;
-    content.push({ type: 'text', text: `t = ${Number(f.t || 0).toFixed(1)} s` });
+    const sid = clean(f.src || 'v1', 6), st = sources.find(x => x.id === sid);
+    content.push({ type: 'text', text: st && st.type === 'photo' ? `${sid} (photo)` : `${sid} · t = ${Number(f.t || 0).toFixed(1)} s` });
     content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: f.data } });
     n++;
   }
   if (!n) return out({ error: 'bad' }, 400);
   content.push({ type: 'text', text: 'Choisis les passages.' });
   return ask(key, SYSTEM_CUT, TOOL_CUT, content);
+}
+
+/* ---------- textes d'un flyer (texte seul, aucune image) ---------- */
+const TOOL_FLY = {
+  name: 'ecrire_flyer',
+  description: 'Renvoie les textes du flyer.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      kick: { type: 'string', description: 'Bandeau court en majuscules (max 24 caractères), peut être vide.' },
+      t1: { type: 'string', description: 'Titre principal (max 28 caractères).' },
+      t2: { type: 'string', description: 'Mot ou fin de titre mis en couleur (max 18 caractères).' },
+      sub: { type: 'string', description: 'Phrase d’accroche (max 70 caractères).' },
+      p1: { type: 'string', description: 'Point fort 1 (max 22 caractères).' },
+      p2: { type: 'string', description: 'Point fort 2 (max 22 caractères).' },
+      p3: { type: 'string', description: 'Point fort 3 (max 22 caractères).' }
+    },
+    required: ['kick', 't1', 't2', 'sub', 'p1', 'p2', 'p3']
+  }
+};
+const SYSTEM_FLY = `Tu écris les textes d'un flyer Facebook/Instagram pour Atelier Brillance (nettoyage à domicile à Amiens et alentours, fait à la main).
+Règles : français simple et direct, percutant, sans emoji, sans promesse chiffrée ou prix inventés (seulement ceux donnés dans la consigne), pas de superlatif mensonger. Respecte les longueurs maximales. Garde l'esprit du modèle et des textes actuels, améliore-les selon la consigne.
+Réponds uniquement en appelant l'outil ecrire_flyer (obligatoire), sans texte autour.`;
+async function flyer(b, key) {
+  const actuel = b.actuel && typeof b.actuel === 'object' ? b.actuel : {};
+  const cur = ['kick', 't1', 't2', 'sub', 'p1', 'p2', 'p3'].map(k => `${k} : « ${clean(actuel[k], 80)} »`).join('\n');
+  const text = [
+    `Activité : ${clean(b.activite, 40)} · site : ${clean(b.site, 60)}`,
+    `Modèle de flyer : ${clean(b.modele, 40)}`,
+    `Textes actuels :\n${cur}`,
+    b.consigne ? `Consigne : « ${clean(b.consigne, 300)} »` : 'Pas de consigne : propose une version plus accrocheuse.'
+  ].join('\n\n');
+  return ask(key, SYSTEM_FLY, TOOL_FLY, [{ type: 'text', text }]);
 }
