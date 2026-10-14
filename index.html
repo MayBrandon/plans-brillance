@@ -122,7 +122,7 @@ button.danger,:root[data-theme="light"] button.danger{background:linear-gradient
 .tg .pl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;pointer-events:none}
 .fn{display:flex;gap:10px;padding:10px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--ink);background:color-mix(in srgb,var(--ink) 96%,transparent)}
 .fn button{flex:1;padding:16px;font-weight:600}
-.fn button[disabled]{opacity:.3}
+.fn button[disabled]{opacity:.3}.fn button.lk{opacity:.35;filter:grayscale(1)}
 .miss{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
 .miss button{padding:8px 12px;font-size:14px}
 dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--foam);width:min(92vw,520px);padding:16px;max-height:86vh}
@@ -844,7 +844,7 @@ function startFlow(ph){
  phase=ph;
  const zs=allZones();
  const first=zs.findIndex(z=>!zoneDone(z,ph));
- idx=first<0?0:first;
+ idx=first<0?0:first;idx=Math.min(idx,maxIdx());
  renderFlow()}
 function renderFlow(){
  revoke();
@@ -858,7 +858,7 @@ function renderFlow(){
  $('#app').innerHTML=h;
  const tr=$('#track');
  tr.scrollLeft=idx*tr.clientWidth;
- tr.onscroll=()=>{clearTimeout(tr._t);tr._t=setTimeout(()=>{const i=Math.round(tr.scrollLeft/tr.clientWidth);if(i!==idx){idx=i;updHead()}},50)};
+ tr.onscroll=()=>{clearTimeout(tr._t);tr._t=setTimeout(()=>{const i=Math.round(tr.scrollLeft/tr.clientWidth);const m=maxIdx();if(i>m){toast(LOCK_MSG);idx=m;tr.scrollTo({left:m*tr.clientWidth,behavior:'smooth'});updHead();return}if(i!==idx){idx=i;updHead()}},50)};
  tr.onclick=flowClick;
  $('#fb').onclick=()=>hub();
  $('#fl').onclick=listDlg;
@@ -866,8 +866,11 @@ function renderFlow(){
  $('#fnext').onclick=()=>goTo(idx+1);
  updHead();
 }
+/* PENDANT auto : impossible d'aller plus loin que la première étape pas finie */
+function maxIdx(){const zs=allZones();if(!(phase==='pendant'&&hasCk()))return zs.length;const f=zs.findIndex(z=>z.ck&&ckLeft(z).length);return f<0?zs.length:f}
+const LOCK_MSG='Coche tout avant de passer à l’étape suivante';
 function goTo(i){
- const n=allZones().length;idx=Math.max(0,Math.min(n,i));
+ const n=allZones().length;if(i>maxIdx()){toast(LOCK_MSG);i=maxIdx()}idx=Math.max(0,Math.min(n,i));
  const tr=$('#track');tr.scrollTo({left:idx*tr.clientWidth,behavior:'smooth'});updHead()}
 function updHead(){
  if(!$('#fsub'))return; /* le parcours a été quitté entre-temps */
@@ -878,6 +881,7 @@ function updHead(){
  $('#fbar').style.width=(n?Math.round(doneCount(phase)/n*100):0)+'%';
  $('#fprev').disabled=idx<=0;
  $('#fnext').style.visibility=idx>=n?'hidden':'visible';
+ $('#fnext').classList.toggle('lk',idx>=maxIdx());
 }
 function thumb(m,rm){
  return `<div data-open="${esc(m.id)}">${m.type==='photo'?`<img src="${url(m.blob)}" alt="">`:`<video src="${url(m.blob)}#t=0.1" preload="metadata" muted playsinline></video><span class="pl">${ico('play')}</span>`}${rm?`<button class="x ic-only" data-rm="${esc(m.id)}" aria-label="Supprimer">${ico('x')}</button>`:''}</div>`}
