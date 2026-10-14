@@ -3,7 +3,7 @@
    ça crée un « passage » (début/fin dans le même fichier, rien n'est dupliqué). Les passages entrent dans le montage
    comme des vidéos de la zone, dans l'ordre du rush. */
 
-const RS={ph:'avant',cur:null,stopAt:null};
+const RS={ph:'avant',cur:null,stopAt:null,try:0,auto:null};
 const RS_LEN={2:{l:'2 s'},3:{l:'3 s'},4:{l:'4 s'},5:{l:'5 s'}};
 
 (function(){const st=document.createElement('style');st.textContent=`
@@ -83,7 +83,10 @@ function rsOpen(){
  v.onloadedmetadata=()=>{upd();if(ld)ld.style.display='none'};
  v.onerror=()=>{if(!ld)return;const c=v.error?v.error.code:0;ld.style.display='';ld.className='hint warn';
   ld.innerHTML=`La vidéo ne se lit pas (code ${c}${R.blob&&R.blob.type?' · '+esc(R.blob.type):''}). <button id="rsre" style="padding:6px 10px;margin-left:6px">Réessayer</button>`;
-  const b=$('#rsre');if(b)b.onclick=()=>{ld.className='hint';ld.textContent='Chargement de la vidéo…';v.src=url(rsPlayable(R.blob,R.ext));v.load()}};
+  const b=$('#rsre');if(b)b.onclick=()=>{ld.className='hint';ld.textContent='Chargement de la vidéo… (essai '+(++RS.try+1)+')';
+   const vs=[R.blob,new Blob([R.blob],{type:'video/mp4'}),new Blob([R.blob],{type:'video/quicktime'})];v.src=url(vs[RS.try%vs.length]);v.load()}};
+ /* 1er échec : on réessaie tout seul avec un autre type de vidéo */
+ v.addEventListener('error',()=>{if(RS.auto===R.id)return;RS.auto=R.id;const b=$('#rsre');if(b)b.click()});
  setTimeout(()=>{if(ld&&ld.style.display!=='none'&&!v.error&&v.readyState<1){ld.textContent='Toujours en chargement… Si rien ne bouge, touche ▶ sur la vidéo.'}},8000);
  v.onpause=()=>{RS.stopAt=null};
  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{v.pause();v.currentTime=Math.max(0,Math.min((v.duration||0)-.05,v.currentTime+parseFloat(b.dataset.s)))});
