@@ -228,6 +228,18 @@ input[type=range]{width:100%;accent-color:var(--cyan);margin:8px 0 0}
 .mti button.ic-only{padding:8px;flex:none}
 .mti button svg.i{margin:0;width:22px;height:22px}
 .mti:not(.off) button svg.i{color:var(--cyan)}
+/* --- vlog TikTok / Insta --- */
+.vlbar{margin-bottom:8px}.vlbar button{padding:10px 6px;font-size:.82rem}
+.vlr{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 8px;margin-bottom:6px;transition:opacity .2s}
+.vlr.off{opacity:.4}
+.vln{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);min-width:1.6em;text-align:right}
+.vlth{flex:none;width:44px;height:56px;border-radius:8px;background:#000;overflow:hidden}
+.vlth img{width:100%;height:100%;object-fit:cover;display:block}
+.vlx{min-width:0;line-height:1.25}.vlx b{display:block;font-size:.9rem}.vlx b small{color:var(--muted);font-weight:500}
+.vlx>small{display:block;color:var(--muted);font-family:var(--font-mono);font-size:.7rem}
+.vlr button.ic-only{padding:7px;flex:none}.vlr button svg.i{margin:0;width:18px;height:18px}
+.vlr:not(.off) [data-tog] svg.i{color:var(--cyan)}
+svg.vlup,svg.vldn{transform:rotate(90deg)}
 
 /* --- rendez-vous de l'espace pro, réglages --- */
 .rdv{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:8px 16px;padding:12px;text-align:left;border-radius:var(--radius)}
@@ -828,6 +840,7 @@ function hub(){
  <div class="hint" style="text-align:center">${hasCk()?'<b>AVANT</b> avant de commencer, <b>PENDANT</b> : la check-list à suivre étape par étape avec les photos de contrôle, <b>APRÈS</b> quand tout est coché.':'<b>AVANT</b> avant de commencer, <b>PENDANT</b> pour les plans d’action (facultatif), <b>APRÈS</b> quand c’est fini.'}</div>`;
  if(media.length)h+=`<div class="wrap" style="margin-top:14px"><button id="exp" class="primary" style="width:100%;padding:16px">${ico('upload')} Exporter pour le montage</button></div>`;
  h+=`<div class="wrap" style="margin-top:10px"><button id="mtb" style="width:100%;padding:16px">${ico('film')} Créer une vidéo (montage auto)</button></div>`;
+ h+=`<div class="wrap" style="margin-top:10px"><button id="vlb" class="primary" style="width:100%;padding:16px">${ico('video')} Vlog TikTok / Insta</button></div>`;
  h+=`<div class="wrap" style="margin-top:10px"><button id="rsb" style="width:100%;padding:16px">${ico('video')} Découper un rush (lunettes Meta)</button></div>`;
  if(baZones().length)h+=`<div class="wrap" style="margin-top:10px"><button id="ba" style="width:100%;padding:16px">${ico('sparkles')} Créer un avant/après à poster</button></div>`;
  else if(sess.avantDone)h+=`<div class="hint" style="text-align:center">Dès qu’un plan a une photo avant et une photo après, tu pourras créer une image avant/après à poster.</div>`;
@@ -840,6 +853,7 @@ function hub(){
  $('#sqB').onclick=()=>{if(locked())return;if(hasCk()&&!sess.pendantDone){toast('Termine d’abord la check-list du PENDANT');return}startFlow('apres')};
  const e=$('#exp');if(e)e.onclick=exportDlg;
  const b=$('#ba');if(b)b.onclick=baDlg;
+ const vb=$('#vlb');if(vb)vb.onclick=()=>{if(!media.length)toast('Importe d’abord tes vidéos (Découper un rush)');else if(typeof vlOpen==='function')vlOpen();else toast('Recharge l’app')};
  const rb=$('#rsb');if(rb)rb.onclick=()=>{if(typeof rsOpen==='function')rsOpen();else toast('Recharge l’app')};
  const mb=$('#mtb');if(mb)mb.onclick=()=>{if(!media.length)toast('Prends d’abord des photos ou vidéos pour ce nettoyage');else if(typeof mtOpen==='function')mtOpen();else toast('Montage indisponible : recharge l’app')};
 }
@@ -1335,5 +1349,6 @@ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 <script src="rush.js"></script>
 <script src="flyer.js"></script>
 <script src="pub.js"></script>
+<script src="vlog.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-const C = 'plans-brillance-v30';
-const FILES = ['./', './index.html', './montage.js', './claude.js', './rush.js', './flyer.js', './pub.js', './manifest.webmanifest', './images/logo-ab.png', './images/apple-touch-icon.png', './images/favicon.png'];
+const C = 'plans-brillance-v31';
+const FILES = ['./', './index.html', './montage.js', './claude.js', './rush.js', './flyer.js', './pub.js', './vlog.js', './manifest.webmanifest', './images/logo-ab.png', './images/apple-touch-icon.png', './images/favicon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });

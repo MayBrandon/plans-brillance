@@ -76,7 +76,7 @@ function rsOpen(){
  <div class="lbl">Zones</div><div id="rsz"></div>
  <div class="ai-act" style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
   <button class="primary" id="rset" style="padding:15px 8px" ${cuts.some(c=>c.phase==='avant')?'':'disabled'}>${ico('film')} Monter en « État des lieux »</button>
-  <button class="primary" id="rstk" style="padding:15px 8px" ${cuts.length?'':'disabled'}>${ico('video')} Montage TikTok / Insta</button>
+  <button class="primary" id="rstk" style="padding:15px 8px">${ico('video')} Vlog TikTok / Insta</button>
   <button id="rsmt" style="padding:15px 8px">Aller au montage</button>
   <div class="row"><button class="sp" id="rsimp">${ico('import')} Ajouter vidéos / photos</button><button class="sp" id="rsdel">${ico('trash')} Supprimer ce rush</button></div></div></div>`;
  $('#app').innerHTML=h;
@@ -102,7 +102,7 @@ function rsOpen(){
  const rc=$('#rscons');rc.oninput=()=>lsSet('pb_rs_cons_'+sess.id,rc.value);
  const tg=$('#rstout'),tgd=()=>{const on=lsGet('pb_rs_tout','1')==='1';tg.innerHTML=`${ico(on?'check-circle':'circle')} Garder toutes les séquences utilisables${on?'':' · sinon : la meilleure par zone'}`;tg.classList.toggle('on',on)};
  tgd();tg.onclick=()=>{lsSet('pb_rs_tout',lsGet('pb_rs_tout','1')==='1'?'0':'1');tgd()};
- $('#rstk').onclick=()=>{v.pause();if(!rsCuts().length)return;mtSocial(true)};
+ $('#rstk').onclick=()=>{v.pause();vlOpen()};
  $('#rsauto').onclick=()=>{v.pause();if(typeof aiPro!=='function'||!aiPro()){toast('Connecte ton espace pro pour utiliser Claude');return}rsAuto(R,rc.value.trim())};
  $('#rsimp').onclick=()=>{v.pause();rsImport()};
  $('#rsdel').onclick=async()=>{v.pause();
