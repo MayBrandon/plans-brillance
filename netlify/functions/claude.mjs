@@ -9,7 +9,7 @@ const PRO = {
 };
 /* prix en $ par million de jetons (entrée / sortie) */
 const PRICE = { 'claude-sonnet-5-5': [2, 10], 'claude-opus-5-5': [4, 20], 'claude-haiku-4-5-20251001': [1, 5] };
-const MAX_IMG = 48, MAX_IMG_B64 = 450000, MAX_MEDIA = 200;
+const MAX_IMG = 64, MAX_IMG_B64 = 450000, MAX_MEDIA = 200;
 
 const env = k => (globalThis.Netlify ? Netlify.env.get(k) : process.env[k]) || '';
 const out = (o, status = 200) => Response.json(o, { status, headers: { 'cache-control': 'no-store' } });
@@ -169,21 +169,21 @@ async function ask(key, system, tool, content) {
 /* ---------- découpage automatique d'un rush ---------- */
 const TOOL_CUT = {
   name: 'decouper_rush',
-  description: 'Renvoie les passages à garder dans le rush, un par zone.',
+  description: 'Renvoie les passages à garder dans le rush.',
   input_schema: {
     type: 'object',
     properties: {
       titre: { type: 'string', description: 'Titre court de la vidéo (max 40 caractères).' },
       style: { type: 'string', description: 'Identifiant du style de montage le plus adapté (seulement si une liste de styles est fournie).' },
       passages: {
-        type: 'array', description: 'Un passage par zone vue dans le rush (au plus un par zone), dans l’ordre du montage : l’accroche en premier.',
+        type: 'array', description: 'Les passages à garder, dans l’ordre du montage : l’accroche en premier. Un seul par zone, sauf si le message demande toutes les séquences.',
         items: {
           type: 'object',
           properties: {
             source: { type: 'string', description: 'Identifiant de la source (v1, v2… pour une vidéo, p1, p2… pour une photo).' },
             zone: { type: 'string', description: 'Identifiant de zone fourni.' },
             debut: { type: 'number', description: 'Début en secondes dans la vidéo source (0 pour une photo).' },
-            fin: { type: 'number', description: 'Fin en secondes (2 à 4 s après le début ; pour une photo : durée d’affichage, 1.5 à 3).' },
+            fin: { type: 'number', description: 'Fin en secondes (en général 2 à 4 s après le début, jusqu’à 10 s en mode toutes les séquences ; pour une photo : durée d’affichage, 1.5 à 3).' },
             texte: { type: 'string', description: 'Texte court à l’écran (max 28 caractères), en général le nom de la zone.' },
             vu: { type: 'string', description: 'Ce qu’on voit, en quelques mots.' }
           },
@@ -220,6 +220,7 @@ async function decoupe(b, key) {
          : `Phase : ${clean(b.phase, 12).toUpperCase()} · durée du rush : ${duree.toFixed(1)} s`,
     styles.length ? `Styles de montage possibles (choisis le plus adapté dans « style ») :\n${styles.join('\n')}` : '',
     `Zones possibles (id — nom) :\n${zones.map(z => `${z.id} — ${z.l}`).join('\n')}`,
+    b.tout ? `MODE TOUTES LES SÉQUENCES (prioritaire sur les règles de nombre) : garde TOUTES les séquences utilisables du rush, pas seulement la meilleure par zone. Plusieurs passages pour une même zone sont permis (et souhaités s'ils montrent des choses différentes : autre angle, autre étape, résultat). Écarte seulement ce qui est flou, qui tremble trop, sans intérêt (trajet, sol vide, main devant l'objectif), en double exact, ou qui montre une plaque, un visage ou des papiers. Passages de 2 à 10 s, sans chevauchement dans une même vidéo, jusqu'à 40 passages. Ordre : l'accroche d'abord, puis l'ordre chronologique du rush.` : '',
     b.consigne ? `Consigne de l'utilisateur : « ${clean(b.consigne, 600)} »` : ''
   ].filter(Boolean).join('\n\n') }];
   const sources = (Array.isArray(b.sources) ? b.sources : []).slice(0, 40);

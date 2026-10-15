@@ -20,9 +20,11 @@ const MT_STY={
  edit:{l:'Édit',e:'sparkles',d:'Glissés, textes animés, vidéos accélérées',pd:1.6,vd:2.2,tr:'slide',td:.35,zoom:.05,mus:1,orig:0,rate:1.5,txt:'pop'},
  pov:{l:'Lunettes Meta',e:'eye',d:'Vue à la première personne : vidéos des lunettes, son d’origine, « POV »',pd:2,vd:8,tr:'fade',td:.25,zoom:.04,vz:1.06,mus:.35,orig:1,rate:1,txt:'pov',vidFirst:true},
  etat:{l:'État des lieux',e:'search',d:'Teaser de l’avant : accroche, coupes nettes, zones numérotées, « le résultat dans la prochaine vidéo »',pd:1.8,vd:2.4,tr:'flash',td:.22,zoom:.16,vz:1.06,mus:1,orig:0,rate:1,txt:'etat',vidFirst:true,only:'avant'},
+ reseau:{l:'TikTok / Insta',e:'video',d:'Montage normal : toutes les séquences, coupes nettes, juste « Atelier Brillance » à l’écran',pd:1.8,vd:4,tr:'cut',td:0,zoom:.04,mus:1,orig:.3,rate:1,txt:'none',noIO:true},
  ba:{l:'Avant/Après',e:'split',d:'Un rideau révèle l’après sur chaque plan',pd:2,vd:2,tr:'fade',td:.3,zoom:.03,mus:.9,orig:0,rate:1,txt:'soft',pair:true},
 };
 const MT_TIP={
+ reseau:'TikTok / Insta : pas d’intro, pas de fin, pas d’étiquettes AVANT/APRÈS ni de nom de zone. Toutes les séquences gardées s’enchaînent, avec seulement « Atelier Brillance Auto » discret en haut de l’écran.',
  ba:'Avant/Après : une photo avant et une photo après du même plan sont réunies par un rideau ; les vidéos s’intercalent juste avant.',
  etat:'État des lieux : seul l’AVANT est utilisé. Avec les lunettes, fais le tour de la voiture lentement et reste 3 secondes immobile sur chaque zone (sol conducteur, banquette, coffre, côté passager). Le premier plan sert d’accroche : mets-y le plus sale (désactive les autres plans si besoin). Publie ensuite l’après en « Avant/Après » pour la suite.',
  pov:'Lunettes Meta : importe les vidéos des lunettes sur chaque plan (bouton « Importer » pendant le nettoyage). Quand un plan a une vidéo, elle remplace ses photos ; le son d’origine est gardé et l’image est légèrement recadrée pour cacher l’effet grand-angle.'};
@@ -113,6 +115,7 @@ async function mtBuild(cfg,onProg,quick){
  let its;
  if(AI){const all=new Map(mtItems().map(i=>[i.m.id,i]));its=AI.order.map(id=>all.get(id)).filter(Boolean)}
  else its=mtItems().filter(i=>!cfg.off[i.m.id]&&(!S.only||i.ph===S.only));
+ if(S.txt==='none'&&!AI)its=its.slice().sort((x,y)=>(x.m.ts||0)-(y.m.ts||0)); /* TikTok / Insta : ordre chronologique du tournage */
  if(S.vidFirst&&!AI){const hasV=new Set(its.filter(i=>i.m.type==='video').map(i=>i.ph+'|'+i.z.id));its=its.filter(i=>i.m.type==='video'||!hasV.has(i.ph+'|'+i.z.id))}
  const vids=its.filter(i=>i.m.type==='video'&&!MT_DUR.has(i.m.id));
  if(!quick){let n=0;for(const i of vids){if(onProg)onProg(`Analyse des vidéos ${++n}/${vids.length}`);MT_DUR.set(i.m.id,await mtVidDur(i.m))}}
@@ -138,7 +141,7 @@ async function mtBuild(cfg,onProg,quick){
    }else for(const i of zi){const s=clip(i);if(s)segs.push(s)}}
  }else for(const i of its){const s=clip(i);if(s)segs.push(s)}
  /* durée max : on resserre chaque plan proportionnellement */
- const io=cfg.io?{a:S.txt==='etat'?0:S.tr==='cut'?1.2:1.8,b:S.txt==='etat'?3.1:2.4}:{a:0,b:0};
+ const io=cfg.io&&!S.noIO?{a:S.txt==='etat'?0:S.tr==='cut'?1.2:1.8,b:S.txt==='etat'?3.1:2.4}:{a:0,b:0};
  const body=segs.reduce((a,s)=>a+s.dur,0),tgt=MT_LEN[cfg.len].s;
  if(tgt&&body>0&&body+io.a+io.b>tgt){
   const f=Math.max(.05,(tgt-io.a-io.b)/body);
@@ -342,7 +345,8 @@ function mtSeg(R,s,lt,i){
   else if(S.vz)z=S.vz;
   if(S.tr==='flash'&&S.txt!=='etat'&&lt<.22){const a=(1-lt/.22)*22*u;c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
   mtMedia(R,R.src.get(s.it.m.id),z,px,py);
-  if(S.txt==='etat')mtEtat(R,s,lt);else mtTexts(R,s.it.ph,mtTx(R.cfg,s.it.m.id)||s.it.z.l,lt,s.dur)}
+  if(S.txt==='none')mtMark(R);
+  else if(S.txt==='etat')mtEtat(R,s,lt);else mtTexts(R,s.it.ph,mtTx(R.cfg,s.it.m.id)||s.it.z.l,lt,s.dur)}
  c.restore()}
 function mtIdx(R,t){
  let i=Math.max(0,R.cur);const L=R.segs;
@@ -380,7 +384,8 @@ function mtPoster(){
  if(MT.run||!sess||!$('#mtcv'))return;
  const cfg=mtCfg(),R=mtMakeR(cfg,{segs:[],total:0});
  R.c.save();
- if(cfg.io)mtIntro(R,2);
+ if(R.S.noIO){mtBg(R);mtMark(R);R.c.fillStyle='#9aa7b2';R.c.font=`600 ${54*R.u}px ${MT_FONT}`;R.c.textAlign='center';R.c.textBaseline='middle';R.c.fillText('Touche Aperçu',R.W/2,R.H/2)}
+ else if(cfg.io)mtIntro(R,2);
  else{mtBg(R);R.c.fillStyle='#9aa7b2';R.c.font=`600 ${54*R.u}px ${MT_FONT}`;R.c.textAlign='center';R.c.textBaseline='middle';R.c.fillText('Touche Aperçu',R.W/2,R.H/2)}
  R.c.restore()}
 
@@ -602,6 +607,7 @@ async function mtOpen(){
  <div class="mt">
   <div id="mtai"></div>
   <div class="mtv"><canvas id="mtcv" width="1080" height="1920"></canvas><div class="bar"><i id="mtbar"></i></div><div class="mtst" id="mtst"></div></div>
+  <button class="primary" id="mttk" style="width:100%;margin-top:12px;padding:15px 8px">${ico('video')} Montage TikTok / Insta (story 9:16)</button>
   <div class="row mtgo"><button class="sp" id="mtpv">${ico('play')} Aperçu</button><button class="sp primary" id="mtgo">${ico('film')} Créer la vidéo</button></div>
   <div class="hint" id="mtest"></div>
   <div class="lbl">Style de montage</div><div class="lst tpl" id="mtsty"></div>
@@ -619,6 +625,7 @@ async function mtOpen(){
  </div>`;
  $('#back').onclick=()=>{mtStop();MT_AB.clear();MT.open++;hub()};
  $('#mtpv').onclick=()=>mtRun(false);
+ $('#mttk').onclick=()=>{if(MT.busy)return;mtSocial(false);mtRun(true)};
  $('#mtgo').onclick=()=>mtRun(true);
  mtStyUI();
  mtChoice('mtfmt',MT_FMT,cfg.fmt,v=>{cfg.fmt=v;lsSet('pb_mt_fmt',v);mtSave();mtPoster();mtEst()});
@@ -643,3 +650,26 @@ async function mtPick(){
  <button id="cl" style="width:100%;margin-top:10px">Fermer</button>`;
  d.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{d.close();await open_(b.dataset.s);mtOpen()});
  $('#cl').onclick=()=>d.close();d.showModal()}
+
+/* ---------- TikTok / Insta : marque discrète, rien d'autre à l'écran ---------- */
+function mtMarkText(){const d=tplOf(sess).act==='auto'?'Atelier Brillance Auto':'Atelier Brillance';return lsGet('pb_mt_wm',d)||d}
+function mtMark(R){
+ const {c,u,W}=R,txt=R.wm||(R.wm=mtMarkText()),fs=34*u,y=(R.cfg.fmt==='story'?150:44)*u;
+ c.save();c.font=`700 ${fs}px ${MT_FONT}`;c.textBaseline='middle';
+ const lg=MT.logo,lw=lg&&lg.naturalWidth?44*u:0,lh=lw?lw*(lg.naturalHeight/lg.naturalWidth):0,gap=lw?12*u:0;
+ const tw=c.measureText(txt).width,w=tw+lw+gap+40*u,h=fs*1.7,x=(W-w)/2;
+ rrect(c,x,y,w,h,h/2);c.fillStyle='rgba(11,15,20,.5)';c.fill();
+ if(lw)c.drawImage(lg,x+20*u,y+(h-lh)/2,lw,lh);
+ c.fillStyle='rgba(255,255,255,.95)';c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=6*u;c.textAlign='left';
+ c.fillText(txt,x+20*u+lw+gap,y+h/2+1*u);c.restore()}
+/* applique le montage TikTok / Insta : story, toutes les séquences, sans intro ni étiquettes */
+function mtSocial(open){
+ const cfg=mtCfg();
+ cfg.sty='reseau';cfg.fmt='story';cfg.vm=null;cfg.vo=null;cfg.len='auto';cfg.off={};
+ if(cfg.ai)cfg.ai.on=false; /* toutes les séquences, dans l'ordre du rush */
+ lsSet('pb_mt_sty','reseau');lsSet('pb_mt_fmt','story');
+ if(open){putSession(sess).catch(()=>{});mtOpen();setTimeout(()=>toast('Montage TikTok / Insta prêt · touche « Créer la vidéo »'),500);return}
+ mtSave();mtStyUI();mtChoice('mtfmt',MT_FMT,cfg.fmt,v=>{cfg.fmt=v;lsSet('pb_mt_fmt',v);mtSave();mtPoster();mtEst()});
+ mtChoice('mtlen',MT_LEN,cfg.len,v=>{cfg.len=v;mtSave();mtEst()});
+ const n=$('#mtban');if(n){n.style.display='';n.textContent=MT_TIP.reseau}
+ mtMusUI();mtItsUI&&mtItsUI();mtPoster();mtEst()}

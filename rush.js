@@ -66,8 +66,9 @@ function rsOpen(){
  <div class="rs-t"><b id="rst">0:00.0</b><div class="row"><button data-s="-1">−1 s</button><button data-s="-0.2">−0,2</button><button data-s="0.2">+0,2</button><button data-s="1">+1 s</button></div></div>
  <div class="lbl">Phase</div><div class="seg" id="rsph"></div>
  <div class="aic"><div class="hd"><div class="bd">${ico('sparkles')}</div><div class="sp"><b>Découpage automatique</b><small>Claude choisit les passages et prépare le montage</small></div></div>
-  <p>Claude regarde des images de toutes tes vidéos${rs.length>1?` (${rs.length})`:''}${media.some(m=>m.zone==='_raw')?' et photos':''}, garde le meilleur passage de chaque zone, choisit l’accroche et prépare le montage. Tu valides les images avant l’envoi, les vidéos ne partent pas.</p>
+  <p>Claude regarde des images de toutes tes vidéos${rs.length>1?` (${rs.length})`:''}${media.some(m=>m.zone==='_raw')?' et photos':''}, garde les passages utilisables (toutes les séquences ou la meilleure par zone, selon ton choix), choisit l’accroche et prépare le montage. Tu valides les images avant l’envoi, les vidéos ne partent pas.</p>
   <textarea id="rscons" rows="2" maxlength="400" aria-label="Ta consigne pour Claude" placeholder="Consigne (facultatif) : ex. commence par le coffre">${esc(lsGet('pb_rs_cons_'+sess.id,''))}</textarea>
+  <button id="rstout" class="rstg" style="width:100%;margin:8px 0;text-align:left"></button>
   <button class="primary go" id="rsauto">${ico('sparkles')} Trouver les passages</button></div>
  <div class="lbl">Ajuster à la main (facultatif)</div>
  <div class="hint" style="margin:0">Mets la vidéo au bon moment, puis touche « Marquer ici » sur la zone. Le passage dure ${len} s à partir de ce moment.</div>
@@ -75,6 +76,7 @@ function rsOpen(){
  <div class="lbl">Zones</div><div id="rsz"></div>
  <div class="ai-act" style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
   <button class="primary" id="rset" style="padding:15px 8px" ${cuts.some(c=>c.phase==='avant')?'':'disabled'}>${ico('film')} Monter en « État des lieux »</button>
+  <button class="primary" id="rstk" style="padding:15px 8px" ${cuts.length?'':'disabled'}>${ico('video')} Montage TikTok / Insta</button>
   <button id="rsmt" style="padding:15px 8px">Aller au montage</button>
   <div class="row"><button class="sp" id="rsimp">${ico('import')} Ajouter vidéos / photos</button><button class="sp" id="rsdel">${ico('trash')} Supprimer ce rush</button></div></div></div>`;
  $('#app').innerHTML=h;
@@ -98,6 +100,9 @@ function rsOpen(){
  const rl=$('#rsl');if(rl)rl.onclick=e=>{const b=e.target.closest('[data-r]');if(b){RS.cur=b.dataset.r;rsOpen()}};
  $('#back').onclick=()=>{v.pause();hub()};
  const rc=$('#rscons');rc.oninput=()=>lsSet('pb_rs_cons_'+sess.id,rc.value);
+ const tg=$('#rstout'),tgd=()=>{const on=lsGet('pb_rs_tout','1')==='1';tg.innerHTML=`${ico(on?'check-circle':'circle')} Garder toutes les séquences utilisables${on?'':' · sinon : la meilleure par zone'}`;tg.classList.toggle('on',on)};
+ tgd();tg.onclick=()=>{lsSet('pb_rs_tout',lsGet('pb_rs_tout','1')==='1'?'0':'1');tgd()};
+ $('#rstk').onclick=()=>{v.pause();if(!rsCuts().length)return;mtSocial(true)};
  $('#rsauto').onclick=()=>{v.pause();if(typeof aiPro!=='function'||!aiPro()){toast('Connecte ton espace pro pour utiliser Claude');return}rsAuto(R,rc.value.trim())};
  $('#rsimp').onclick=()=>{v.pause();rsImport()};
  $('#rsdel').onclick=async()=>{v.pause();
@@ -187,11 +192,11 @@ async function rsAuto(R,cons,phase){
  const pg=t=>{const e=$('#aipg');if(e)e.textContent=t};
  if(!src.length){pg('Aucune vidéo ni photo à analyser.');return}
  {let q=0;const nv=src.filter(s=>!s.photo).length;for(const s of src)if(!s.photo){pg(`Lecture des vidéos ${++q}/${nv}…`);s.dur=await rsDur(rsPlayable(s.m.blob,s.m.ext));if(run!==MT.open)return}}
- /* 48 images au total : 1 par photo (16 max), le reste réparti entre les vidéos selon leur durée */
+ /* 64 images au total : 1 par photo (16 max), le reste réparti entre les vidéos selon leur durée */
  const phs=src.filter(s=>s.photo).slice(0,16),vids=src.filter(s=>!s.photo&&s.dur>0);
  if(!vids.length&&!phs.length){pg('Impossible de lire ces vidéos sur ce téléphone.');return}
- const B=48-phs.length,tot=vids.reduce((a,s)=>a+s.dur,0);
- for(const s of vids)s.n=Math.max(4,Math.min(Math.round(s.dur/1.2)+1,Math.round(B*s.dur/(tot||1))));
+ const B=64-phs.length,tot=vids.reduce((a,s)=>a+s.dur,0);
+ for(const s of vids)s.n=Math.max(3,Math.min(Math.round(s.dur/1.2)+1,Math.round(B*s.dur/(tot||1))));
  let sum=vids.reduce((a,s)=>a+s.n,0);while(sum>B){const b=vids.reduce((a,s)=>s.n>a.n?s:a);if(b.n<=2)break;b.n--;sum--}
  const fr=[];let k=0;const all=vids.reduce((a,s)=>a+s.n,0)+phs.length;
  for(const s of src){
@@ -230,11 +235,12 @@ function rsValid(src,fr,cons,ph){
   AI.busy=true;const w=$('.ai-act');w.innerHTML=`<div class="ai-wait" style="padding:10px 0"><div class="sp1"></div>Claude regarde tes vidéos… (environ 30 à 60 s)</div>`;
   const zs=rsZoneList(ph),sent=new Set(sel.map(x=>x.src));
   const sources=src.filter(s=>sent.has(s.id)).map((s,i)=>({id:s.id,type:s.photo?'photo':'video',duree:s.photo?0:+s.dur.toFixed(1),ordre:i+1}));
-  const j=await aiCall({mode:'decoupe',titre:sess.name,prestation:tplOf(sess).l,phase:ph==='auto'?'auto':PH[ph],duree:+Math.max(0,...src.map(s=>s.dur||0)).toFixed(1),consigne:cons,
+  const tout=lsGet('pb_rs_tout','1')==='1';
+  const j=await aiCall({mode:'decoupe',tout,titre:sess.name,prestation:tplOf(sess).l,phase:ph==='auto'?'auto':PH[ph],duree:+Math.max(0,...src.map(s=>s.dur||0)).toFixed(1),consigne:cons,
    sources,styles:ph==='auto'?Object.entries(MT_STY).filter(([k])=>k!=='ba').map(([k,v])=>({id:k,l:v.l,d:v.d})):[],
    zones:zs.map(z=>({id:z.id,l:z.l})),images:sel.map(x=>({src:x.src,t:x.t,data:x.b64}))});
   AI.busy=false;if(!$('.ai-act'))return;
-  const ps=j.prop&&rsPassages(j.prop,zs,src.filter(s=>sent.has(s.id)));
+  const ps=j.prop&&rsPassages(j.prop,zs,src.filter(s=>sent.has(s.id)),tout);
   if(j.error||!ps||!ps.length){
    w.innerHTML=`<div class="hint warn" style="margin:0">${esc(AI_ERR[j.error]||(j.error?'Claude a refusé la demande'+(j.detail?' : '+j.detail:'')+(j.status?' ('+j.status+')':''):'Claude n’a trouvé aucun passage utilisable.'))}${j.cost?'':' Rien n’a été débité.'}</div><button class="primary" id="aiok2">Réessayer</button><button id="aino2">Retour</button>`;
    $('#aiok2').onclick=()=>rsValid(src,fr,cons,ph);$('#aino2').onclick=back;return}
@@ -262,16 +268,17 @@ function rsZoneList(ph){
  for(const p of ph==='auto'?PHASES:[ph])for(const z of zonesFor(p))out.push({id:p+'|'+z.id,l:(ph==='auto'?PH[p]+' · ':'')+z.l});
  return out}
 /* passages renvoyés par Claude → vérifiés (source et zone connues, une par zone, dans la vidéo, sans chevauchement) */
-function rsPassages(p,zs,srcs){
- const ok=new Set(zs.map(z=>z.id)),seen=new Set(),out=[],one=srcs.length===1?srcs[0]:null;
+function rsPassages(p,zs,srcs,tout){
+ const ok=new Set(zs.map(z=>z.id)),seen=new Set(),out=[],one=srcs.length===1?srcs[0]:null,mx=tout?10:6;
  for(const x of Array.isArray(p.passages)?p.passages:[]){
-  if(!x||!ok.has(x.zone)||seen.has(x.zone))continue;
+  if(out.length>=60)break;
+  if(!x||!ok.has(x.zone)||(!tout&&seen.has(x.zone)))continue;
   const S=srcs.find(s=>s.id===String(x.source||'').toLowerCase())||one;if(!S)continue;
   let a=0,b=2.2;
   if(!S.photo){const dur=S.dur||0;a=Math.max(0,Math.min(dur-.5,+x.debut||0));b=Math.min(dur,+x.fin||a+3);
-   if(b-a<1)b=Math.min(dur,a+2.5);if(b-a>6)b=a+6;if(b-a<.5)continue;
+   if(b-a<1)b=Math.min(dur,a+2.5);if(b-a>mx)b=a+mx;if(b-a<.5)continue;
    if(out.some(o=>o.s===S&&a<o.fin&&b>o.debut))continue}
-  else if(out.some(o=>o.s===S))continue;
+  else if(!tout&&out.some(o=>o.s===S))continue;
   else{const d=+x.fin-(+x.debut||0);if(d>=1&&d<=4)b=d}
   seen.add(x.zone);out.push({s:S,zone:x.zone,debut:+a.toFixed(2),fin:+b.toFixed(2),texte:String(x.texte||'').slice(0,40),vu:String(x.vu||'').slice(0,140)})}
  return out}
