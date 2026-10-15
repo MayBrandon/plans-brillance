@@ -135,15 +135,26 @@ function rsDur(blob){return new Promise(res=>{const v=document.createElement('vi
  const u=URL.createObjectURL(blob);const end=d=>{clearTimeout(to);v.removeAttribute('src');v.load();URL.revokeObjectURL(u);res(d)};
  const to=setTimeout(()=>end(0),15000);v.onloadedmetadata=()=>end(isFinite(v.duration)?v.duration:0);v.onerror=()=>end(0);v.src=u})}
 function rsGrab(blob,times,onp){return new Promise(res=>{
- const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';
- const u=URL.createObjectURL(blob),out=[];let done=false;
- const end=()=>{if(done)return;done=true;v.removeAttribute('src');v.load();URL.revokeObjectURL(u);res(out)};
- const seek=t=>new Promise(ok=>{const tt=setTimeout(ok,5000);v.onseeked=()=>{clearTimeout(tt);ok()};v.currentTime=t});
+ /* iPhone : ne jamais attendre « loadeddata » (Safari ne charge pas l'image tant qu'on ne lit pas) ;
+    on part des métadonnées, on force le décodage d'une image, et chaque étape a un délai max */
+ const v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='auto';
+ v.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none';document.body.appendChild(v);
+ const u=URL.createObjectURL(blob),out=[];let done=false,started=false;
+ const end=()=>{if(done)return;done=true;clearTimeout(to);v.pause();v.removeAttribute('src');v.load();v.remove();URL.revokeObjectURL(u);res(out)};
+ const to=setTimeout(()=>{if(!started)end()},20000); /* vidéo illisible : on passe à la suivante */
+ const wait=(ev,ms)=>new Promise(ok=>{let t;const f=()=>{clearTimeout(t);v.removeEventListener(ev,f);ok(true)};t=setTimeout(()=>{v.removeEventListener(ev,f);ok(false)},ms);v.addEventListener(ev,f)});
+ const frame=async()=>{if(v.readyState>=2)return;try{const p=v.play();if(p&&p.then)await Promise.race([p,new Promise(r=>setTimeout(r,1500))])}catch(e){}v.pause();if(v.readyState<2)await wait('canplay',2500)};
  v.onerror=end;
- v.onloadeddata=async()=>{let k=0;for(const t of times){await seek(t);if(done)return;
-  try{if(v.videoWidth)out.push({t,...aiJpeg(v,v.videoWidth,v.videoHeight,512),off:false})}catch(e){}
-  if(onp)onp(++k,times.length)}end()};
- v.src=u})}
+ v.onloadedmetadata=async()=>{if(started)return;started=true;clearTimeout(to);
+  await frame();let k=0;
+  for(const t of times){if(done)return;
+   const tt=Math.min(Math.max(0,t),Math.max(0,(v.duration||t)-.1));
+   const sk=wait('seeked',6000);try{v.currentTime=tt}catch(e){}await sk;
+   if(v.readyState<2)await frame();
+   try{if(v.videoWidth&&v.readyState>=2)out.push({t,...aiJpeg(v,v.videoWidth,v.videoHeight,512),off:false})}catch(e){}
+   if(onp)onp(++k,times.length)}
+  end()};
+ v.src=u;v.load()})}
 /* toutes les sources du nettoyage : vidéos (lunettes, téléphone) et photos ajoutées, dans l'ordre de prise de vue */
 function rsSources(){
  const vs=media.filter(m=>m.zone==='_rush'),ps=media.filter(m=>m.zone==='_raw'&&m.type==='photo');
@@ -175,7 +186,7 @@ async function rsAuto(R,cons,phase){
  $('#aib').onclick=()=>{MT.open++;if(ph==='auto')hub();else rsOpen()};
  const pg=t=>{const e=$('#aipg');if(e)e.textContent=t};
  if(!src.length){pg('Aucune vidéo ni photo à analyser.');return}
- for(const s of src)if(!s.photo){s.dur=await rsDur(rsPlayable(s.m.blob,s.m.ext));if(run!==MT.open)return}
+ {let q=0;const nv=src.filter(s=>!s.photo).length;for(const s of src)if(!s.photo){pg(`Lecture des vidéos ${++q}/${nv}…`);s.dur=await rsDur(rsPlayable(s.m.blob,s.m.ext));if(run!==MT.open)return}}
  /* 48 images au total : 1 par photo (16 max), le reste réparti entre les vidéos selon leur durée */
  const phs=src.filter(s=>s.photo).slice(0,16),vids=src.filter(s=>!s.photo&&s.dur>0);
  if(!vids.length&&!phs.length){pg('Impossible de lire ces vidéos sur ce téléphone.');return}
@@ -189,7 +200,8 @@ async function rsAuto(R,cons,phase){
    try{const im=await flLoadImg(s.m.blob);if(im){const r=aiJpeg(im,im.naturalWidth||im.width,im.naturalHeight||im.height,512);fr.push({src:s.id,t:0,...r,off:false,photo:true})}}catch(e){}continue}
   if(!s.n)continue;
   const times=[];for(let i=0;i<s.n;i++)times.push(+(((i+.5)*s.dur/s.n)).toFixed(2));
-  const f=await rsGrab(rsPlayable(s.m.blob,s.m.ext),times,()=>pg(`Préparation des images ${++k}/${all}…`));
+  const f=await rsGrab(rsPlayable(s.m.blob,s.m.ext),times,()=>pg(`Préparation des images ${++k}/${all}… (vidéo ${s.id.toUpperCase()}) Garde l’appli ouverte et l’écran allumé.`));
+  if(f.length<s.n)k+=s.n-f.length;
   f.forEach(x=>x.src=s.id);fr.push(...f)}
  if(run!==MT.open)return;
  if(!fr.length){pg('Impossible d’extraire des images de ces fichiers.');return}
