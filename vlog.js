@@ -50,9 +50,9 @@ function vlAll(){
   if(r.type==='photo'||c.photo)out.push({id:c.id,m:r,photo:true,a:0,b:VL_PHOTO,k1:vlSrcKey(r),k2:0});
   else if(c.b>c.a)out.push({id:c.id,m:r,photo:false,a:c.a,b:c.b,k1:vlSrcKey(r),k2:c.a})}
  /* pas de dérush : on prend les vidéos des lunettes en entier */
- if(!out.length){
-  for(const r of media.filter(m=>m.zone==='_rush'&&m.type==='video'))out.push({id:'w_'+r.id,m:r,photo:false,a:0,b:0,whole:true,k1:vlSrcKey(r),k2:0});
-  for(const r of media.filter(m=>m.zone==='_raw'&&m.type==='photo'))out.push({id:'w_'+r.id,m:r,photo:true,a:0,b:VL_PHOTO,k1:vlSrcKey(r),k2:0})}
+ const cut=new Set(cuts.map(c=>c.rush));
+ for(const r of media.filter(m=>m.zone==='_rush'&&m.type==='video'&&!cut.has(m.id)))out.push({id:'w_'+r.id,m:r,photo:false,a:0,b:r.dur||0,whole:true,k1:vlSrcKey(r),k2:0});
+ if(!cuts.length)for(const r of media.filter(m=>m.zone==='_raw'&&m.type==='photo'))out.push({id:'w_'+r.id,m:r,photo:true,a:0,b:VL_PHOTO,k1:vlSrcKey(r),k2:0});
  /* photos et vidéos prises plan par plan dans Plans Brillance */
  for(const m of media.filter(m=>!m.zone.startsWith('_')))
   out.push({id:'m_'+m.id,m,photo:m.type==='photo',a:0,b:m.type==='photo'?VL_PHOTO:0,whole:m.type!=='photo',k1:m.cdate||m.ts||0,k2:0});
@@ -266,7 +266,7 @@ function vlRows(){
   <button class="ic-only" data-tog aria-label="${off?'Remettre':'Retirer'}">${ico(off?'circle':'check-circle')}</button></div>`}).join('')||'<div class="hint">Aucune séquence : découpe d’abord ton rush (bouton « Trouver les passages »), ou importe des vidéos.</div>';
  el.onclick=e=>{if(VL.run)return;const row=e.target.closest('[data-id]');if(!row)return;const id=row.dataset.id;
   if(e.target.closest('[data-tog]')){if(cfg.off[id])delete cfg.off[id];else cfg.off[id]=true;vlSave();vlRows();return}
-  const up=e.target.closest('[data-up]'),dn=e.target.closest('[data-dn]');if(!up&&!dn)return;
+  const up=e.target.closest('[data-up]'),dn=e.target.closest('[data-dn]');if(!up&&!dn){vlEdit(id);return}
   const ids=vlList().map(x=>x.id),j=ids.indexOf(id),k=up?j-1:j+1;if(j<0||k<0||k>=ids.length)return;
   [ids[j],ids[k]]=[ids[k],ids[j]];cfg.order=ids;vlSave();vlRows()}}
 function vlMusUI(){
@@ -298,6 +298,7 @@ async function vlOpen(){
   <div class="hint">Les séquences passent dans l’ordre ci-dessous, sans intro ni texte : seulement « ${esc(cfg.wm)} » en haut. Garde l’écran allumé et l’app ouverte pendant la création (elle dure autant que la vidéo).</div>
   ${Array.isArray(sess.cuts)&&sess.cuts.length?'':(media.some(m=>m.zone==='_rush')?`<div class="hint warn" style="margin:10px 0">Ce sont tes vidéos <b>entières</b>. Pour ne garder que les bons passages, découpe d’abord le rush.</div><button id="vlcut" style="width:100%">${ico('sparkles')} Découper le rush (Claude ou à la main)</button>`:'')}
   <div class="lbl">Séquences dans l’ordre du tournage · <span id="vlsum"></span></div>
+  <div class="hint" style="margin:0 0 8px">Touche une séquence pour la regarder, choisir son début et sa fin, ou ajouter des passages d’une vidéo entière. Le rond coche ou retire la séquence.</div>
   <div class="row vlbar"><button class="sp" id="vlchr">${ico('clipboard')} Remettre l’ordre du tournage</button><button class="sp" id="vlall">${ico('check-circle')} Tout cocher</button></div>
   <div id="vlrows"></div>
   <div class="lbl">Format</div><div class="seg" id="vlfmt"></div>
@@ -343,3 +344,48 @@ async function vlPick(){
   catch(e){const e2=$('#aipg');if(e2)e2.textContent='Impossible d’enregistrer un fichier (place insuffisante ?).';return}
   vlOpen()})};
  d.showModal()}
+
+/* ---------- Choisir les passages : regarder, régler début/fin, garder ou retirer ---------- */
+function vlEdit(id,xo){
+ const cfg=vlCfg(),x=xo||vlList().find(y=>y.id===id);if(!x)return;let then=null;
+ const d=$('#dlg'),cuts=Array.isArray(sess.cuts)?sess.cuts:(sess.cuts=[]),cut=cuts.find(c=>c.id===id);
+ if(x.photo){
+  d.innerHTML=`<h3>Photo</h3><img src="${vlURL(x.m)}" alt="">
+  <div style="display:grid;gap:8px;margin-top:12px"><button class="primary" id="vek">${cfg.off[id]?'Garder cette photo':'Retirer cette photo'}</button><button id="cl">Fermer</button></div>`;
+  $('#vek').onclick=()=>{if(cfg.off[id])delete cfg.off[id];else cfg.off[id]=true;vlSave();d.close();vlRows()};
+  $('#cl').onclick=()=>d.close();d.showModal();return}
+ const st={a:x.a,b:x.whole?Math.min(x.a+4,x.b||4):x.b,stop:null,dur:x.m.dur||0};
+ d.innerHTML=`<h3>${x.whole?'Vidéo entière : choisis tes passages':'Passage'}</h3>
+ <video id="vev" src="${vlURL(x.m)}" playsinline controls preload="auto"></video>
+ <div class="vle"><div class="row"><b id="vepos">0:00.0</b><span class="sp"></span><button id="vepl">${ico('play')} Lire le passage</button></div>
+ <div class="vlk"><span>Début <b id="vea"></b></span><div class="row"><button data-a="-1">−1 s</button><button data-a="-0.2">−0,2</button><button data-a="here" class="primary">Ici</button><button data-a="0.2">+0,2</button><button data-a="1">+1 s</button></div></div>
+ <div class="vlk"><span>Fin <b id="veb"></b></span><div class="row"><button data-b="-1">−1 s</button><button data-b="-0.2">−0,2</button><button data-b="here" class="primary">Ici</button><button data-b="0.2">+0,2</button><button data-b="1">+1 s</button></div></div>
+ <p class="small-hint" id="velen"></p></div>
+ <div style="display:grid;gap:8px;margin-top:6px">
+ ${x.whole?`<button class="primary" id="veadd">${ico('check-circle')} Ajouter ce passage au vlog</button><div class="hint" id="veaddn" style="margin:0;text-align:center"></div>`
+   :`<button class="primary" id="vesave">${ico('check-circle')} Garder ce passage${cfg.off[id]?'':' (enregistrer)'}</button><button id="veoff">${cfg.off[id]?'Il est retiré · le remettre':'Retirer ce passage du vlog'}</button>${cut?`<button id="vemore">＋ Ajouter un autre passage de cette vidéo</button><button id="vedel" style="color:var(--red)">${ico('trash')} Supprimer ce passage</button>`:''}`}
+ <button id="cl">Fermer</button></div>`;
+ const v=$('#vev'),dur=()=>isFinite(v.duration)&&v.duration>0?v.duration:(st.dur||9999);
+ const show=()=>{st.a=Math.max(0,Math.min(st.a,dur()-.3));st.b=Math.max(st.a+.3,Math.min(st.b,dur()));
+  $('#vea').textContent=vlT(st.a);$('#veb').textContent=vlT(st.b);$('#velen').textContent=`Durée du passage : ${(st.b-st.a).toFixed(1).replace('.',',')} s. Mets la vidéo au bon moment puis touche « Ici », ou ajuste avec les boutons.`};
+ v.onloadedmetadata=()=>{st.dur=v.duration;if(!x.m.dur){x.m.dur=v.duration;putMedia(x.m).catch(()=>{})}try{v.currentTime=st.a}catch(e){}show()};
+ v.ontimeupdate=()=>{$('#vepos').textContent=vlT(v.currentTime);if(st.stop!==null&&v.currentTime>=st.stop){v.pause();st.stop=null}};
+ v.onpause=()=>{st.stop=null};
+ const nudge=(k,val)=>{v.pause();if(val==='here')st[k]=v.currentTime;else st[k]+=parseFloat(val);
+  if(k==='a'&&st.b<=st.a+.3)st.b=Math.min(dur(),st.a+3);if(k==='b'&&st.b<=st.a+.3)st.a=Math.max(0,st.b-3);show();try{v.currentTime=k==='a'?st.a:Math.max(st.a,st.b-1)}catch(e){}};
+ d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>nudge('a',b.dataset.a));
+ d.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>nudge('b',b.dataset.b));
+ $('#vepl').onclick=()=>{try{v.currentTime=st.a}catch(e){}st.stop=st.b;const p=v.play();if(p&&p.catch)p.catch(()=>{})};
+ const done=()=>{VL.thumbs.delete(id);vlSave();vlRows();vlThumbs(vlList(),VL.open)};
+ if(x.whole){let n=0;$('#veadd').onclick=()=>{
+   cuts.push({id:'cut_'+crypto.randomUUID(),rush:x.m.id,zone:'_vlog',phase:'avant',a:+st.a.toFixed(2),b:+st.b.toFixed(2),ts:Date.now(),vlog:true});
+   putSession(sess).catch(()=>{});n++;$('#veaddn').textContent=`${n} passage${n>1?'s':''} ajouté${n>1?'s':''}. Place-toi plus loin pour en ajouter un autre.`;
+   st.a=st.b;st.b=Math.min(dur(),st.a+4);show();try{v.currentTime=st.a}catch(e){}}}
+ else{
+  $('#vesave').onclick=()=>{if(cut){cut.a=+st.a.toFixed(2);cut.b=+st.b.toFixed(2)}delete cfg.off[id];putSession(sess).catch(()=>{});d.close()};
+  $('#veoff').onclick=()=>{if(cfg.off[id])delete cfg.off[id];else cfg.off[id]=true;d.close()};
+  const mo=$('#vemore');if(mo)mo.onclick=()=>{if(cut){cut.a=+st.a.toFixed(2);cut.b=+st.b.toFixed(2)}putSession(sess).catch(()=>{});then=()=>vlEdit('w_'+x.m.id,{id:'w_'+x.m.id,m:x.m,photo:false,whole:true,a:st.b,b:st.b+4});d.close()};
+  const del=$('#vedel');if(del)del.onclick=()=>{sess.cuts=cuts.filter(c=>c.id!==id);delete cfg.off[id];putSession(sess).catch(()=>{});d.close()}}
+ $('#cl').onclick=()=>d.close();
+ d.onclose=()=>{d.onclose=null;v.pause();v.removeAttribute('src');v.load();done();if(then)setTimeout(then,50)};
+ show();d.showModal()}
