@@ -748,6 +748,7 @@ async function home(act){
  const list=all.filter(s=>tplOf(s).act===curAct);
  let h=`${brandHeader()}<div class="intro"><span class="eyebrow">Checklist photo &amp; vidéo · ${A.l}</span><h1>${A.h}</h1><p>${A.p}</p></div>
  <div class="wrap" style="margin-top:14px"><button class="primary" style="width:100%;padding:16px" id="new">+ Nouveau nettoyage ${esc(actLow(curAct))}</button>
+ <button class="primary" style="width:100%;padding:16px;margin-top:10px" id="vlh">${ico('video')} Vlog TikTok / Insta</button>
  <button style="width:100%;padding:16px;margin-top:10px" id="mth">${ico('film')} Montage vidéo</button>
  <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="raw">${ico('sparkles')}<span><b style="display:block">Vidéo brute → montage IA</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Mets ta vidéo telle quelle : Claude fait le tri et monte la vidéo</small></span></button>
  <button style="width:100%;padding:14px 16px;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px" id="fly">${ico('file')}<span><b style="display:block">Flyer</b><small style="display:block;color:var(--muted);font-size:.78rem;font-weight:400">Avec tes photos avant/après, pour Facebook et Instagram</small></span></button>
@@ -769,6 +770,7 @@ async function home(act){
  $('#pubb').onclick=()=>{if(typeof pbOpen==='function')pbOpen();else toast('Recharge l’app')};
  $('#fly').onclick=()=>{if(typeof flOpen==='function')flOpen();else toast('Recharge l’app')};
  $('#raw').onclick=()=>{if(typeof rawStart==='function')rawStart();else toast('Recharge l’app')};
+ $('#vlh').onclick=()=>{if(typeof vlPick==='function')vlPick();else toast('Recharge l’app')};
  $('#mth').onclick=()=>{if(typeof mtPick==='function')mtPick();else toast('Montage indisponible : recharge l’app')};
  $('#how').onclick=()=>howDlg();$('#priv').onclick=privDlg;$('#set').onclick=settingsDlg;
  renderRdv();syncPending();

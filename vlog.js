@@ -296,6 +296,7 @@ async function vlOpen(){
   <div class="mtv"><canvas id="vlcv" width="540" height="960"></canvas><div class="bar"><i id="vlbar"></i></div><div class="mtst" id="vlst"></div></div>
   <div class="row mtgo"><button class="sp" id="vlpv">${ico('play')} Aperçu</button><button class="sp primary" id="vlgo">${ico('film')} Créer la vidéo</button></div>
   <div class="hint">Les séquences passent dans l’ordre ci-dessous, sans intro ni texte : seulement « ${esc(cfg.wm)} » en haut. Garde l’écran allumé et l’app ouverte pendant la création (elle dure autant que la vidéo).</div>
+  ${Array.isArray(sess.cuts)&&sess.cuts.length?'':(media.some(m=>m.zone==='_rush')?`<div class="hint warn" style="margin:10px 0">Ce sont tes vidéos <b>entières</b>. Pour ne garder que les bons passages, découpe d’abord le rush.</div><button id="vlcut" style="width:100%">${ico('sparkles')} Découper le rush (Claude ou à la main)</button>`:'')}
   <div class="lbl">Séquences dans l’ordre du tournage · <span id="vlsum"></span></div>
   <div class="row vlbar"><button class="sp" id="vlchr">${ico('clipboard')} Remettre l’ordre du tournage</button><button class="sp" id="vlall">${ico('check-circle')} Tout cocher</button></div>
   <div id="vlrows"></div>
@@ -307,6 +308,7 @@ async function vlOpen(){
  </div>`;
  $('#back').onclick=()=>{vlStop();VL.open++;VL.thumbs.clear();vlFreeURLs();hub()};
  $('#vlpv').onclick=()=>vlRun(false);$('#vlgo').onclick=()=>vlRun(true);
+ const vc=$('#vlcut');if(vc)vc.onclick=()=>{vlStop();VL.open++;if(typeof rsOpen==='function')rsOpen()};
  $('#vlchr').onclick=()=>{if(VL.run)return;cfg.order=null;vlSave();vlRows();toast('Ordre du tournage remis')};
  $('#vlall').onclick=()=>{if(VL.run)return;cfg.off={};vlSave();vlRows()};
  const seg=(id,O,k,key)=>{const el=$('#'+id);el.innerHTML=Object.entries(O).map(([v,o])=>`<button data-v="${v}" class="${v===cfg[k]?'on':''}">${esc(o.l)}</button>`).join('');
@@ -319,3 +321,25 @@ async function vlOpen(){
  await vlDates();if(open!==VL.open)return;
  vlRows();window.scrollTo(0,0);
  vlThumbs(vlList(),open)}
+
+/* ---------- Depuis l'accueil ---------- */
+async function vlPick(){
+ const all=(await getSessions()).filter(s=>tplOf(s).act===curAct).sort((a,b)=>b.ts-a.ts),rows=[];
+ for(const s of all){const ms=await getMedia(s.id);const v=ms.filter(m=>m.type==='video').length;if(ms.length)rows.push({s,n:ms.length,v,c:Array.isArray(s.cuts)?s.cuts.length:0})}
+ const d=$('#dlg');
+ d.innerHTML=`<h3>Vlog TikTok / Insta</h3>
+ <button class="primary" id="vlnew" style="width:100%;padding:14px">${ico('import')} Nouvelles vidéos (lunettes / téléphone)</button>
+ ${rows.length?`<div class="lbl">Ou un nettoyage existant</div><div class="lst">${rows.map(r=>`<button data-s="${esc(r.s.id)}">${ico('video')}<span><b>${esc(r.s.name)}</b><small style="display:block;color:var(--muted);font-size:.78rem">${new Date(r.s.ts).toLocaleDateString('fr-FR')} · ${r.v} vidéo(s)${r.c?' · '+r.c+' passage(s) découpé(s)':''}</small></span></button>`).join('')}</div>`:''}
+ <button id="cl" style="width:100%;margin-top:10px">Fermer</button>`;
+ $('#cl').onclick=()=>d.close();
+ d.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{d.close();await open_(b.dataset.s);vlOpen()});
+ $('#vlnew').onclick=()=>{d.close();rsPickFiles(async fs=>{
+  let type=lsGet('pb_type_'+curAct,'');if(!TPL[type]||TPL[type].act!==curAct)type=(Object.entries(TPL).find(([k,t])=>t.act===curAct)||['auto-complet'])[0];
+  const dt=new Date(),s={id:crypto.randomUUID(),name:'Vlog · '+dt.toLocaleDateString('fr-FR')+' '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),ts:Date.now(),type,avantDone:false,pendantDone:false,apresDone:false,raw:true};
+  try{await putSession(s)}catch(e){toast('Impossible de créer le vlog');return}
+  sess=s;media=[];curAct=tplOf(s).act;document.body.classList.remove('has-tab');
+  $('#app').innerHTML=`<header><div class="row"><div class="sp ht"><b>Import des vidéos</b><small>${esc(s.name)}</small></div></div></header><div class="ai-scr"><div class="ai-wait"><div class="sp1"></div><div id="aipg">Import…</div></div></div>`;
+  try{await rsAddFiles(fs,(k,n,f)=>{const e=$('#aipg');if(e)e.textContent=`Import ${k}/${n} (${Math.round(f.size/1048576)} Mo)… garde l’appli ouverte.`})}
+  catch(e){const e2=$('#aipg');if(e2)e2.textContent='Impossible d’enregistrer un fichier (place insuffisante ?).';return}
+  vlOpen()})};
+ d.showModal()}
