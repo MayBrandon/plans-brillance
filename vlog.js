@@ -11,6 +11,21 @@
 const VL_FMT={story:{l:'Story 9:16',w:1080,h:1920},post:{l:'Post 4:5',w:1080,h:1350},carre:{l:'Carré 1:1',w:1080,h:1080}};
 const VL_FIT={cover:{l:'Plein écran'},contain:{l:'Image entière'}};
 const VL_PHOTO=2.5; /* durée d'une photo (s) */
+/* styles : transition entre séquences (cut, fade, slide, flash), effets (zoom à l'arrivée, zoom lent, secousse), vitesse, « look » */
+const VL_STY={
+ net:{l:'Coupe nette',e:'video',d:'Coupes franches, aucun effet : le plus naturel',tr:'cut'},
+ fondu:{l:'Fondu',e:'drop',d:'Fondu enchaîné court entre chaque séquence',tr:'fade',td:.35},
+ glisse:{l:'Glissé',e:'chev-r',d:'Chaque séquence pousse la précédente sur le côté',tr:'slide',td:.3},
+ punch:{l:'Zoom punch',e:'search',d:'Petit zoom qui frappe à chaque nouvelle séquence',tr:'cut',punch:.12},
+ flash:{l:'Flash',e:'sparkles',d:'Flash blanc rapide à chaque coupe',tr:'flash',td:.16},
+ energie:{l:'Énergie',e:'star',d:'Flash, secousse et zoom : très dynamique',tr:'flash',td:.12,punch:.1,shake:1},
+ doux:{l:'Doux',e:'sun',d:'Fondus lents et léger zoom continu',tr:'fade',td:.5,kb:.07},
+ cinema:{l:'Cinéma',e:'film',d:'Bandes noires, vignette, fondus : ambiance film',tr:'fade',td:.5,kb:.04,look:'cinema'},
+ vintage:{l:'Vintage',e:'sun',d:'Couleurs chaudes, grain et vignette',tr:'fade',td:.4,look:'vintage'},
+ nb:{l:'Noir & blanc',e:'moon',d:'Noir et blanc contrasté, coupes nettes',tr:'cut',look:'nb'},
+ rapide:{l:'Rapide',e:'wind',d:'Vidéos accélérées ×1,25 et zoom à chaque coupe',tr:'cut',rate:1.25,punch:.08},
+ ralenti:{l:'Ralenti',e:'clipboard',d:'Vidéos ralenties ×0,75 et fondus',tr:'fade',td:.4,rate:.75}
+};
 const VL={run:null,tok:0,thumbs:new Map(),urls:new Map(),open:0};
 
 /* ---------- Date d'enregistrement d'une vidéo (boîte « mvhd » du MP4/MOV) ----------
@@ -60,10 +75,10 @@ function vlAll(){
 function vlChrono(list){return list.slice().sort((x,y)=>(x.k1-y.k1)||(x.k2-y.k2))}
 function vlCfg(){
  const c=sess.vlog||(sess.vlog={});
- const d={fmt:lsGet('pb_vl_fmt','story'),fit:lsGet('pb_vl_fit','cover'),vo:.8,vm:.3,mus:lsGet('pb_mt_mus',''),mark:true,
+ const d={sty:lsGet('pb_vl_sty','net'),fmt:lsGet('pb_vl_fmt','story'),fit:lsGet('pb_vl_fit','cover'),vo:.8,vm:.3,mus:lsGet('pb_mt_mus',''),mark:true,
   wm:tplOf(sess).act==='auto'?'Atelier Brillance Auto':'Atelier Brillance',order:null,off:{}};
  for(const k in d)if(c[k]===undefined)c[k]=d[k];
- if(!VL_FMT[c.fmt])c.fmt='story';if(!VL_FIT[c.fit])c.fit='cover';if(typeof c.off!=='object'||!c.off)c.off={};
+ if(!VL_STY[c.sty])c.sty='net';if(!VL_FMT[c.fmt])c.fmt='story';if(!VL_FIT[c.fit])c.fit='cover';if(typeof c.off!=='object'||!c.off)c.off={};
  return c}
 /* séquences dans l'ordre choisi (par défaut : chronologique), les nouvelles à leur place chronologique */
 function vlList(){
@@ -78,7 +93,7 @@ function vlSave(){clearTimeout(vlSaveT);const s=sess;vlSaveT=setTimeout(()=>{if(
 function vlURL(m){if(!VL.urls.has(m.id))VL.urls.set(m.id,URL.createObjectURL(m.type==='video'&&typeof rsPlayable==='function'?rsPlayable(m.blob,m.ext):m.blob));return VL.urls.get(m.id)}
 function vlFreeURLs(){for(const u of VL.urls.values())URL.revokeObjectURL(u);VL.urls.clear()}
 function vlT(s){s=Math.max(0,s);const m=Math.floor(s/60),r=s-m*60;return m+':'+(r<10?'0':'')+r.toFixed(1)}
-function vlLen(x){return x.photo?VL_PHOTO:x.b-x.a}
+function vlLen(x,rate){return x.photo?VL_PHOTO:(x.b-x.a)/(rate||1)}
 
 /* ---------- Durées des vidéos entières ---------- */
 function vlDur(m){return new Promise(res=>{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';
@@ -100,15 +115,26 @@ async function vlThumbs(list,open){
 function vlPutThumb(id){const e=document.querySelector(`.vlr[data-id="${CSS.escape(id)}"] .vlth`);if(e&&VL.thumbs.has(id))e.innerHTML=`<img src="${VL.thumbs.get(id)}" alt="">`}
 
 /* ---------- Dessin ---------- */
-function vlDraw(R,el){
- const {c,W,H}=R;c.fillStyle='#000';c.fillRect(0,0,W,H);
- if(el){
-  const v=el.tagName==='VIDEO',sw=v?el.videoWidth:el.naturalWidth,sh=v?el.videoHeight:el.naturalHeight;
-  if(sw&&sh&&(!v||el.readyState>=2)){
-   if(R.fit==='contain'){
-    const s0=Math.max(W/sw,H/sh)*1.15;c.save();c.globalAlpha=.3;c.drawImage(el,(W-sw*s0)/2,(H-sh*s0)/2,sw*s0,sh*s0);c.restore();
-    const s=Math.min(W/sw,H/sh);c.drawImage(el,(W-sw*s)/2,(H-sh*s)/2,sw*s,sh*s)}
-   else{const s=Math.max(W/sw,H/sh);c.drawImage(el,(W-sw*s)/2,(H-sh*s)/2,sw*s,sh*s)}}}
+/* peint une image ou une vidéo (sans habillage) dans un contexte, avec un zoom */
+function vlPaint(c,R,el,z){
+ const {W,H}=R;c.fillStyle='#000';c.fillRect(0,0,W,H);if(!el)return;
+ const v=el.tagName==='VIDEO',sw=v?el.videoWidth:el.naturalWidth,sh=v?el.videoHeight:el.naturalHeight;
+ if(!sw||!sh||(v&&el.readyState<2))return;
+ if(R.fit==='contain'){
+  const s0=Math.max(W/sw,H/sh)*1.15;c.save();c.globalAlpha=.3;c.drawImage(el,(W-sw*s0)/2,(H-sh*s0)/2,sw*s0,sh*s0);c.restore();
+  const s=Math.min(W/sw,H/sh)*z;c.drawImage(el,(W-sw*s)/2,(H-sh*s)/2,sw*s,sh*s)}
+ else{const s=Math.max(W/sw,H/sh)*z;c.drawImage(el,(W-sw*s)/2,(H-sh*s)/2,sw*s,sh*s)}}
+function vlZoom(S,lt,len){return 1+(S.punch?S.punch*(1-mtEO(lt/.3)):0)+(S.kb?S.kb*mtC(len?lt/len:0):0)}
+function vlDraw(R,el,lt=0,len=1){
+ const {c,W,H}=R,S=R.S||VL_STY.net,z=vlZoom(S,lt,len),td=S.td||0,q=td?lt/td:1;
+ c.save();
+ if(S.shake&&lt<.2){const a=(1-lt/.2)*22*(W/1080);c.translate(Math.sin(lt*97)*a,Math.cos(lt*71)*a)}
+ if(R.snap&&q<1&&S.tr==='slide'){const e=mtEIO(q),d=R.dir||1;c.save();c.translate(d*(1-e)*W,0);vlPaint(c,R,el,z);c.restore();c.drawImage(R.snap,-d*e*W,0)}
+ else{vlPaint(c,R,el,z);
+  if(R.snap&&q<1&&S.tr==='fade'){c.globalAlpha=1-mtEO(q);c.drawImage(R.snap,0,0);c.globalAlpha=1}
+  if(R.snap&&q<1&&S.tr==='flash'){c.fillStyle=`rgba(255,255,255,${(1-q)*.85})`;c.fillRect(0,0,W,H)}}
+ c.restore();
+ if(S.look&&typeof mtLook==='function')mtLook(c,W,H,S.look,lt);
  if(R.cfg.mark&&R.cfg.wm)vlMark(R)}
 function vlMark(R){
  const {c,W}=R,u=W/1080,txt=R.cfg.wm,fs=34*u,y=(R.cfg.fmt==='story'?150:44)*u;
@@ -122,7 +148,7 @@ function vlMark(R){
 function vlPoster(){
  if(VL.run||!sess)return;const cv=$('#vlcv');if(!cv)return;
  const cfg=vlCfg(),F=VL_FMT[cfg.fmt],W=F.w/2,H=F.h/2;cv.width=W;cv.height=H;
- const R={c:cv.getContext('2d'),W,H,cfg,fit:cfg.fit};vlDraw(R,null);
+ const R={c:cv.getContext('2d'),W,H,cfg,fit:cfg.fit,S:VL_STY[cfg.sty]};vlDraw(R,null);
  const u=W/1080;R.c.fillStyle='#9aa7b2';R.c.font=`600 ${54*u}px Inter,system-ui,sans-serif`;R.c.textAlign='center';R.c.textBaseline='middle';R.c.fillText('Touche Aperçu',W/2,H/2)}
 
 /* ---------- Lecture / enregistrement ---------- */
@@ -162,14 +188,18 @@ async function vlStart(R,i){
  R.i=i;const x=R.list[i];
  if(!x){vlEnd(R);return}
  await vlPrep(R,i);if(R.ended)return;
- R.cur=x.photo?R.img[i]:R.pool[i%R.pool.length];R.t0=performance.now();
+ R.cur=x.photo?R.img[i]:R.pool[i%R.pool.length];R.t0=performance.now();R.dir=-(R.dir||-1);
+ if(!x.photo)try{R.cur.playbackRate=R.rate;R.cur.defaultPlaybackRate=R.rate}catch(e){}
  R.pool.forEach((e,j)=>{if(R.gains[j])R.gains[j].gain.value=(j===i%R.pool.length&&!x.photo)?R.cfg.vo:0});
  if(!x.photo){const p=R.cur.play();if(p&&p.catch)p.catch(()=>{})}
  /* on prépare les deux suivantes pendant que celle-ci joue */
  setTimeout(()=>{if(!R.ended){vlPrep(R,i+1);vlPrep(R,i+2)}},50)}
 function vlNext(R){
- const x=R.list[R.i];R.done+=vlLen(x);
+ const x=R.list[R.i];R.done+=vlLen(x,R.rate);
  if(!x.photo&&R.cur)R.cur.pause();
+ /* dernière image de la séquence, sans habillage, pour la transition */
+ if(R.S.tr!=='cut'&&R.cur){if(!R.snap){R.snap=document.createElement('canvas');R.snap.width=R.W;R.snap.height=R.H}
+  const len=vlLen(x,R.rate);vlPaint(R.snap.getContext('2d'),R,R.cur,vlZoom(R.S,len,len))}
  R.cur=null; /* l'image reste figée sur la dernière vue le temps de lancer la suivante */
  delete R.ready[R.i];delete R.img[R.i];
  vlStart(R,R.i+1)}
@@ -177,9 +207,9 @@ function vlTick(){
  const R=VL.run;if(!R||R.ended)return;
  const x=R.list[R.i];
  if(x&&R.cur){
-  const el=R.cur,wall=(performance.now()-R.t0)/1000,len=vlLen(x);
-  const pos=x.photo?wall:Math.max(0,el.currentTime-x.a);
-  vlDraw(R,el);
+  const el=R.cur,wall=(performance.now()-R.t0)/1000,len=vlLen(x,R.rate);
+  const pos=x.photo?wall:Math.max(0,el.currentTime-x.a)/R.rate;
+  vlDraw(R,el,Math.min(pos,len),len);
   const t=R.done+Math.min(pos,len),b=$('#vlbar');if(b)b.style.width=Math.round(t/R.total*100)+'%';
   vlStatus(`${R.rec?'Enregistrement':'Aperçu'} · séquence ${R.i+1}/${R.list.length} · ${vlT(t)} / ${vlT(R.total)}`);
   const over=x.photo?wall>=len:(el.currentTime>=x.b-.02||el.ended||wall>len+2);
@@ -220,7 +250,8 @@ async function vlRun(rec){
  let mus=null;
  if(ctx&&cfg.mus&&cfg.vm>0){vlStatus('Chargement de la musique…');try{if(!MT.musics||!MT.musics.length)MT.musics=await mtMusicAll();mus=await mtMusicBuf(ctx,cfg.mus)}catch(e){mus=null}if(tok!==VL.tok)return}
  const cv=$('#vlcv'),F=VL_FMT[cfg.fmt];cv.width=F.w;cv.height=F.h;
- const R={cv,c:cv.getContext('2d'),W:F.w,H:F.h,cfg,fit:cfg.fit,list:L,total:L.reduce((a,x)=>a+vlLen(x),0),pool:VL.pool,gains:VL.gains,ready:{},img:{},done:0,i:0,ctx,ended:false};
+ const S=VL_STY[cfg.sty]||VL_STY.net,rate=S.rate||1;
+ const R={cv,c:cv.getContext('2d'),W:F.w,H:F.h,cfg,fit:cfg.fit,S,rate,snap:null,list:L,total:L.reduce((a,x)=>a+vlLen(x,rate),0),pool:VL.pool,gains:VL.gains,ready:{},img:{},done:0,i:0,ctx,ended:false};
  if(ctx){R.out=ctx.createGain();R.out.connect(ctx.destination);R.gains.forEach(g=>{try{g.disconnect()}catch(e){}g.connect(R.out)})}
  if(ctx&&mus){const s=ctx.createBufferSource(),g=ctx.createGain(),t=ctx.currentTime;s.buffer=mus;s.loop=true;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(cfg.vm,t+.6);s.connect(g);g.connect(R.out);s.start(t);R.music=s;R.mg=g}
  if(rec){
@@ -233,7 +264,7 @@ async function vlRun(rec){
  try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(w=>{R.wl=w}).catch(()=>{})}catch(e){}
  vlStatus('Chargement de la première séquence…');
  await vlPrep(R,0);if(R.ended)return;
- vlDraw(R,R.list[0].photo?R.img[0]:R.pool[0]);
+ vlDraw(R,R.list[0].photo?R.img[0]:R.pool[0],0,vlLen(R.list[0],rate));
  if(R.rec)R.rec.start(1000);
  await vlStart(R,0);
  R.raf=requestAnimationFrame(vlTick)}
@@ -256,7 +287,7 @@ function vlDone(R,blob,type){
 function vlRows(){
  const cfg=vlCfg(),list=vlList(),el=$('#vlrows');if(!el)return;
  const srcN=new Map();let n=0;for(const x of vlChrono(vlAll()))if(!srcN.has(x.m.id))srcN.set(x.m.id,++n);
- const on=list.filter(x=>!cfg.off[x.id]),tot=on.reduce((a,x)=>a+(vlLen(x)||0),0);
+ const on=list.filter(x=>!cfg.off[x.id]),rt=(VL_STY[cfg.sty]||{}).rate||1,tot=on.reduce((a,x)=>a+(vlLen(x,rt)||0),0);
  $('#vlsum').textContent=`${on.length}/${list.length} séquences${tot?' · '+vlT(tot):''}${list.some(x=>x.whole&&!x.b)?' + vidéos entières':''}`;
  el.innerHTML=list.map((x,j)=>{const off=!!cfg.off[x.id],when=x.m.cdate?new Date(x.m.cdate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
   const what=x.photo?'Photo':x.whole?'Vidéo entière':`${vlT(x.a)} → ${vlT(x.b)} · ${(x.b-x.a).toFixed(1).replace('.',',')} s`;
@@ -301,6 +332,7 @@ async function vlOpen(){
   <div class="hint" style="margin:0 0 8px">Touche une séquence pour la regarder, choisir son début et sa fin, ou ajouter des passages d’une vidéo entière. Le rond coche ou retire la séquence.</div>
   <div class="row vlbar"><button class="sp" id="vlchr">${ico('clipboard')} Remettre l’ordre du tournage</button><button class="sp" id="vlall">${ico('check-circle')} Tout cocher</button></div>
   <div id="vlrows"></div>
+  <div class="lbl">Style · ${Object.keys(VL_STY).length} variantes</div><div class="lst tpl" id="vlsty" style="max-height:none"></div>
   <div class="lbl">Format</div><div class="seg" id="vlfmt"></div>
   <div class="lbl">Cadrage</div><div class="seg" id="vlfit"></div>
   <div class="lbl">Son</div><div id="vlmus"></div>
@@ -314,6 +346,8 @@ async function vlOpen(){
  $('#vlall').onclick=()=>{if(VL.run)return;cfg.off={};vlSave();vlRows()};
  const seg=(id,O,k,key)=>{const el=$('#'+id);el.innerHTML=Object.entries(O).map(([v,o])=>`<button data-v="${v}" class="${v===cfg[k]?'on':''}">${esc(o.l)}</button>`).join('');
   el.onclick=e=>{const b=e.target.closest('[data-v]');if(!b||VL.run)return;cfg[k]=b.dataset.v;lsSet(key,cfg[k]);vlSave();el.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x===b));vlPoster()}};
+ const sty=$('#vlsty');sty.innerHTML=Object.entries(VL_STY).map(([k,v])=>`<button data-v="${k}" class="${k===cfg.sty?'on':''}">${ico(v.e)}<span><b>${esc(v.l)}</b><small>${esc(v.d)}</small></span></button>`).join('');
+ sty.onclick=e=>{const b=e.target.closest('[data-v]');if(!b||VL.run)return;cfg.sty=b.dataset.v;lsSet('pb_vl_sty',cfg.sty);vlSave();sty.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x===b));vlPoster();vlRows()};
  seg('vlfmt',VL_FMT,'fmt','pb_vl_fmt');seg('vlfit',VL_FIT,'fit','pb_vl_fit');
  $('#vlwm').oninput=e=>{cfg.wm=e.target.value.trim();vlSave();vlPoster()};
  $('#vlmk').onclick=()=>{cfg.mark=!cfg.mark;$('#vlmk').innerHTML=ico(cfg.mark?'check-circle':'circle');vlSave();vlPoster()};

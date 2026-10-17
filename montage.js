@@ -20,6 +20,11 @@ const MT_STY={
  edit:{l:'Édit',e:'sparkles',d:'Glissés, textes animés, vidéos accélérées',pd:1.6,vd:2.2,tr:'slide',td:.35,zoom:.05,mus:1,orig:0,rate:1.5,txt:'pop'},
  pov:{l:'Lunettes Meta',e:'eye',d:'Vue à la première personne : vidéos des lunettes, son d’origine, « POV »',pd:2,vd:8,tr:'fade',td:.25,zoom:.04,vz:1.06,mus:.35,orig:1,rate:1,txt:'pov',vidFirst:true},
  etat:{l:'État des lieux',e:'search',d:'Teaser de l’avant : accroche, coupes nettes, zones numérotées, « le résultat dans la prochaine vidéo »',pd:1.8,vd:2.4,tr:'flash',td:.22,zoom:.16,vz:1.06,mus:1,orig:0,rate:1,txt:'etat',vidFirst:true,only:'avant'},
+ cinema:{l:'Cinéma',e:'film',d:'Bandes noires, fondus lents, vignette, ambiance film',pd:3,vd:4,tr:'fade',td:.7,zoom:.06,mus:.9,orig:0,rate:1,txt:'soft',look:'cinema'},
+ vintage:{l:'Vintage',e:'sun',d:'Couleurs chaudes, grain, fondus doux',pd:2.6,vd:3.5,tr:'fade',td:.5,zoom:.06,mus:.9,orig:0,rate:1,txt:'soft',look:'vintage'},
+ nb:{l:'Noir & blanc',e:'moon',d:'Noir et blanc contrasté, coupes nettes, élégant',pd:2.2,vd:3,tr:'cut',td:0,zoom:.05,mus:.9,orig:.2,rate:1,txt:'tag',look:'nb'},
+ rapide:{l:'Rapide',e:'wind',d:'Très court, coupes sèches, vidéos accélérées',pd:.7,vd:1.2,tr:'cut',td:0,zoom:.1,mus:1,orig:0,rate:1.3,txt:'big'},
+ punch:{l:'Zoom punch',e:'search',d:'Chaque plan arrive avec un zoom qui frappe',pd:1.4,vd:2,tr:'punch',td:.3,zoom:.16,mus:1,orig:0,rate:1,txt:'pop'},
  ba:{l:'Avant/Après',e:'split',d:'Un rideau révèle l’après sur chaque plan',pd:2,vd:2,tr:'fade',td:.3,zoom:.03,mus:.9,orig:0,rate:1,txt:'soft',pair:true},
 };
 const MT_TIP={
@@ -335,6 +340,7 @@ function mtSeg(R,s,lt,i){
  else{
   let z=1,px=0,py=0;
   if(S.txt==='etat'){const q=s.dur>.4?(lt-.4)/(s.dur-.4):1;z=lt<.4?1+S.zoom*(1-mtEO(lt/.4)):1+(S.vz-1)*mtC(q)}
+  else if(S.tr==='punch')z=1+S.zoom*(1-mtEO(lt/S.td));
   else if(!s.v){
    if(S.tr==='flash')z=1+S.zoom*(1-mtEO(lt/.35));
    else{const q=s.dur?lt/s.dur:0;z=1+S.zoom*q;px=(i%2?1:-1)*(q-.5)*.5;py=(i%3-1)*(q-.5)*.3}}
@@ -363,6 +369,21 @@ function mtFrame(R,t){
  else{
   mtSeg(R,s,lt,i);
   if(tr==='flash'&&prev&&lt<td){c.globalAlpha=(1-lt/td)*.85;c.fillStyle='#fff';c.fillRect(0,0,W,H);c.globalAlpha=1}}
+ if(S.look)mtLook(c,W,H,S.look,t);
+ c.restore()}
+/* ---------- « looks » partagés (montage, vlog, pub) : pas de ctx.filter (absent de Safari), seulement des fusions ---------- */
+let MT_GRAIN=null;
+function mtGrain(){if(MT_GRAIN)return MT_GRAIN;const g=document.createElement('canvas');g.width=g.height=256;const x=g.getContext('2d'),d=x.createImageData(256,256);
+ for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}x.putImageData(d,0,0);return MT_GRAIN=g}
+function mtVignette(c,W,H,a){const g=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${a})`);c.fillStyle=g;c.fillRect(0,0,W,H)}
+function mtGray(c,W,H){c.save();c.globalCompositeOperation='saturation';c.fillStyle='#808080';c.fillRect(0,0,W,H);c.restore()}
+function mtLook(c,W,H,look,t){
+ c.save();c.globalAlpha=1;c.setTransform(1,0,0,1,0,0);
+ if(look==='nb'){mtGray(c,W,H);c.globalCompositeOperation='overlay';c.fillStyle='rgba(128,128,128,.25)';c.fillRect(0,0,W,H);c.globalCompositeOperation='source-over';mtVignette(c,W,H,.45)}
+ else if(look==='vintage'){c.globalCompositeOperation='overlay';c.fillStyle='rgba(255,160,80,.28)';c.fillRect(0,0,W,H);c.globalCompositeOperation='multiply';c.fillStyle='rgba(255,236,210,.9)';c.fillRect(0,0,W,H);
+  c.globalCompositeOperation='overlay';c.globalAlpha=.12;const g=mtGrain(),ox=Math.floor(Math.random()*256),oy=Math.floor(Math.random()*256);c.translate(-ox,-oy);c.fillStyle=c.createPattern(g,'repeat');c.fillRect(0,0,W+256,H+256);
+  c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';mtVignette(c,W,H,.55)}
+ else if(look==='cinema'){mtVignette(c,W,H,.5);const b=Math.round(H*(W/H<.7?.09:.07));c.fillStyle='#000';c.fillRect(0,0,W,b);c.fillRect(0,H-b,W,b)}
  c.restore()}
 function mtMakeR(cfg,B){
  const cv=$('#mtcv'),F=MT_FMT[cfg.fmt],q=cfg.q==='std'?2/3:1;
