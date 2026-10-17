@@ -70,9 +70,10 @@ function flWrapC(c,txt,cx,y,w,s,wt,col,lh=1.3,max=2){flFont(c,wt,s);c.fillStyle=
  const L=mtWrap(c,txt,w,max);L.forEach((l,i)=>c.fillText(l,cx,y+i*s*lh));return L.length*s*lh}
 function flTag(c,txt,x,y,after){return flPill(c,txt,x,y,28,after?FL.acc:'rgba(13,27,42,.92)',after?FL_INK:'#fff','l',after?null:'rgba(255,255,255,.45)')}
 
-function flDraw(cv){
+function flDraw(cv,k=1){
  const c=cv.getContext('2d'),T=FL.txt,acc=FL.acc,A=FL.avI,B=FL.apI;
- c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,FL_W,FL_H);c.letterSpacing='0px';
+ c.setTransform(k,0,0,k,0,0);c.clearRect(0,0,FL_W,FL_H);c.letterSpacing='0px';
+ const X=FL_TPL[FL.tpl]&&FL_TPL[FL.tpl].x;if(X){X(c,T,A,B,flP());return}
  if(FL.tpl==='main'){
   const g=c.createRadialGradient(540,0,0,540,0,1300);g.addColorStop(0,'#163049');g.addColorStop(.48,'#0d1b2a');g.addColorStop(1,'#08121d');c.fillStyle=g;c.fillRect(0,0,FL_W,FL_H);
   flHead(c,52);let y=140;
@@ -217,6 +218,7 @@ async function flPhotos(){ /* toutes les photos des nettoyages de l'activité */
 async function flOpen(){
  revoke();document.body.classList.remove('has-tab');sess=null;
  if(!FL.logo)FL.logo=await loadImg('images/logo-ab.png').catch(()=>null);
+ FL.acc=lsGet('pb_fl_acc','#35e0c9');FL.th=lsGet('pb_fl_th','sombre');
  FL.tpl=lsGet('pb_fl_tpl','main');if(!FL_TPL[FL.tpl])FL.tpl='main';FL.txt=flTxt();
  const ph=await flPhotos();
  if(!FL.av&&!FL.ap){ /* paire avant/après de la même zone, du nettoyage le plus récent */
@@ -240,13 +242,15 @@ async function flOpen(){
   <div class="lbl">Contact</div>
   <label class="rng">Site<input type="text" id="flsite" maxlength="60" value="${esc(flSite())}"></label>
   <label class="rng">Téléphone (vide = masqué)<input type="text" id="fltel" maxlength="20" value="${esc(flTel())}"></label>
-  <div class="lbl">Couleur</div><div class="seg" id="flacc"></div>
+  <div class="lbl">Couleur</div><div class="seg" id="flacc" style="flex-wrap:wrap"></div>
+  <div id="flthw" style="display:none"><div class="lbl">Fond</div><div class="seg" id="flth"></div></div>
  </div>`;
  const cv=$('#flcv'),draw=()=>flDraw(cv);draw();
  $('#back').onclick=()=>home();
  flThumbs();
- FL.acc=lsGet('pb_fl_acc','#35e0c9');
- mtChoice('flacc',{'#35e0c9':{l:'Turquoise'},'#2bc4ff':{l:'Bleu'},'#f2c14e':{l:'Or'}},FL.acc,k=>{FL.acc=k;lsSet('pb_fl_acc',k);draw()});
+ const ACCS={'#35e0c9':{l:'Turquoise'},'#2bc4ff':{l:'Bleu'},'#f2c14e':{l:'Or'},'#ff7a6b':{l:'Corail'},'#a78bfa':{l:'Violet'},'#7ee081':{l:'Vert'}};
+ mtChoice('flacc',ACCS,FL.acc,k=>{FL.acc=k;lsSet('pb_fl_acc',k);draw();flThumbs()});
+ const thw=$('#flthw');if(thw){if(FL_TPL[FL.tpl].th){thw.style.display='';mtChoice('flth',FL_TH,FL.th,k=>{FL.th=k;lsSet('pb_fl_th',k);draw();flThumbs()})}else thw.style.display='none'}
  $('#fltx').oninput=e=>{const i=e.target.closest('[data-f]');if(!i)return;FL.txt[i.dataset.f]=i.value;flSave();draw()};
  $('#flsite').oninput=e=>{lsSet('pb_fl_site_'+flAct(),e.target.value.trim());draw()};
  $('#fltel').oninput=e=>{lsSet('pb_fl_tel',e.target.value.trim());draw()};
@@ -281,7 +285,7 @@ async function flAI(){
 /* miniatures des modèles (dessinées avec tes photos et tes textes) */
 function flThumbs(){
  const el=$('#fltpl');if(!el)return;const cur=FL.tpl,txt=FL.txt;
- el.innerHTML=Object.entries(FL_TPL).map(([k,v])=>`<button data-v="${k}" class="${k===cur?'on':''}"><canvas width="${FL_W}" height="${FL_H}"></canvas><span>${esc(v.l)}</span></button>`).join('');
- el.querySelectorAll('[data-v]').forEach(b=>{FL.tpl=b.dataset.v;FL.txt=flTxt();try{flDraw(b.querySelector('canvas'))}catch(e){}});
+ el.innerHTML=Object.entries(FL_TPL).map(([k,v])=>`<button data-v="${k}" class="${k===cur?'on':''}"><canvas width="${FL_W/5}" height="${FL_H/5}"></canvas><span>${esc(v.l)}</span></button>`).join('');
+ el.querySelectorAll('[data-v]').forEach(b=>{FL.tpl=b.dataset.v;FL.txt=flTxt();try{flDraw(b.querySelector('canvas'),.2)}catch(e){}});
  FL.tpl=cur;FL.txt=txt;
  el.onclick=e=>{const b=e.target.closest('[data-v]');if(!b||b.dataset.v===FL.tpl)return;FL.tpl=b.dataset.v;lsSet('pb_fl_tpl',FL.tpl);flOpen()}}
