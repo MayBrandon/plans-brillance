@@ -240,6 +240,13 @@ input[type=range]{width:100%;accent-color:var(--cyan);margin:8px 0 0}
 .vlr button.ic-only{padding:7px;flex:none}.vlr button svg.i{margin:0;width:18px;height:18px}
 .vlr:not(.off) [data-tog] svg.i{color:var(--cyan)}
 svg.vlup,svg.vldn{transform:rotate(90deg)}
+/* --- flyers : choix du modèle --- */
+.fltpls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fltpls button{padding:6px;border-radius:14px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.fltpls canvas{width:100%;height:auto;border-radius:9px;display:block;background:#000}
+.fltpls span{font-size:.75rem;line-height:1.2;text-align:center}
+.fltpls button.on{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}
+#fltx textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--foam);font:inherit;margin:6px 0;resize:vertical}
 .vlx{cursor:pointer}
 .vle{margin-top:10px}.vle #vepos{font-family:var(--font-mono)}
 .vlk{margin-top:10px}.vlk>span{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}.vlk>span b{color:var(--foam);font-family:var(--font-mono)}
